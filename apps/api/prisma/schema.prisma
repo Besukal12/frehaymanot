@@ -11,3 +11,33 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model MezmurCategory {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relation to Mezmurs
+  mezmurs Mezmur[]
+}
+
+model Mezmur {
+  id                 Int      @id @default(autoincrement())
+  title              String
+  description        String?
+  categoryId         Int
+  thumbnailUrl       String?
+  thumbnailStorageId String?
+  storagePath        String
+  mimeType           String
+  fileSize           Int
+  fileName           String
+  uploadedById       Int
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  category MezmurCategory @relation(fields: [categoryId], references: [id])
+}
