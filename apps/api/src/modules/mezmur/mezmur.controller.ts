@@ -6,6 +6,7 @@ import {
   validateFileType,
   uploadToCloudinary,
 } from "../../middleware/upload/uploadToCloudinary.js";
+import cloudinary from "../../config/cloudinary.js";
 
 // add mezmur and mezmur category
 export async function addCategory(req: Request, res: Response) {
@@ -210,9 +211,116 @@ export async function getMezmurById(req: Request, res: Response) {
 }
 
 //delete mezmur and mezmur category
-export async function deleteCategory(req: Request, res: Response) {}
+export async function deleteCategory(req: Request, res: Response) {
+  try {
+    const categoryId = Number(req.params.id);
 
-export async function deleteMezmur(req: Request, res: Response) {}
+    if (!Number.isInteger(categoryId) || categoryId <= 0) {
+      return res.status(400).json({
+        message: "Invalid category ID",
+      });
+    }
+
+    const category = await prisma.mezmurCategory.findUnique({
+      where: {
+        id: categoryId,
+      },
+    });
+
+    if (!category) {
+      return res.status(404).json({
+        message: "Category not found",
+      });
+    }
+
+    await prisma.mezmurCategory.delete({
+      where: {
+        id: categoryId,
+      },
+    });
+
+    return res.status(200).json({
+      message: "Category deleted successfully",
+      category,
+    });
+  } catch (error) {
+    console.error("Delete category error:", error);
+
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+}
+
+export async function deleteMezmur(req: Request, res: Response) {
+  try {
+    const { userId, orgRole } = getAuth(req);
+
+    if (!userId) {
+      return res.status(401).json({
+        message: "Unauthorized",
+      });
+    }
+
+    const mezmurId = Number(req.params.id);
+
+    if (!Number.isInteger(mezmurId) || mezmurId <= 0) {
+      return res.status(400).json({
+        message: "Invalid mezmur ID",
+      });
+    }
+
+    const mezmur = await prisma.mezmur.findUnique({
+      where: {
+        id: mezmurId,
+      },
+    });
+
+    if (!mezmur) {
+      return res.status(404).json({
+        message: "Mezmur not found",
+      });
+    }
+
+    const isOwner = mezmur.uploadedById === userId;
+    const isAdmin = orgRole === "admin";
+
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({
+        message: "You are not authorized to delete this mezmur.",
+      });
+    }
+
+    if (mezmur.thumbnailStorageId) {
+      await cloudinary.uploader.destroy(mezmur.thumbnailStorageId, {
+        resource_type: "image",
+      });
+    }
+
+    if (mezmur.pdfStorageId) {
+      await cloudinary.uploader.destroy(mezmur.pdfStorageId, {
+        resource_type: "raw",
+      });
+    }
+
+    await prisma.mezmur.delete({
+      where: {
+        id: mezmurId,
+      },
+    });
+
+    return res.status(200).json({
+      message: "Mezmur deleted successfully",
+      mezmur,
+    });
+  } catch (error) {
+    console.error("Delete mezmur error:", error);
+
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+}
 
 //update mezmur and mezmur category
 export async function updateCategory(req: Request, res: Response) {}
