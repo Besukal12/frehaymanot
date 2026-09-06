@@ -7,6 +7,7 @@ import {
   uploadToCloudinary,
 } from "../../middleware/upload/uploadToCloudinary.js";
 
+// add mezmur and mezmur category
 export async function addCategory(req: Request, res: Response) {
   try {
     const categories = MezmurCategorySchema.safeParse(req.body);
@@ -52,7 +53,6 @@ export async function addMezmur(req: Request, res: Response) {
       });
     }
 
-
     const mezmurData = MezmurSchema.safeParse(req.body);
 
     if (!mezmurData.success) {
@@ -62,11 +62,7 @@ export async function addMezmur(req: Request, res: Response) {
       });
     }
 
-    const {
-      title,
-      description,
-      categoryId,
-    } = mezmurData.data;
+    const { title, description, categoryId } = mezmurData.data;
 
     const category = await prisma.mezmurCategory.findUnique({
       where: {
@@ -144,3 +140,81 @@ export async function addMezmur(req: Request, res: Response) {
     });
   }
 }
+
+//get mezmur and mezmur category
+export async function getCategory(req: Request, res: Response) {
+  try {
+    const categories = await prisma.mezmurCategory.findMany();
+
+    return res.status(200).json({
+      message: "Categories retrieved successfully",
+      categories: categories,
+    });
+  } catch (error) {
+    console.error("Get category error:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+}
+
+export async function getMezmur(req: Request, res: Response) {
+  try {
+    const mezmurs = await prisma.mezmur.findMany({
+      include: {
+        category: true,
+      },
+    });
+
+    return res.status(200).json({
+      message: "Mezmurs retrieved successfully",
+      mezmurs: mezmurs,
+    });
+  } catch (error) {
+    console.error("Get mezmur error:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+}
+
+export async function getMezmurById(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+
+    const mezmur = await prisma.mezmur.findUnique({
+      where: {
+        id: Number(id),
+      },
+      include: {
+        category: true,
+      },
+    });
+
+    if (!mezmur) {
+      return res.status(404).json({
+        message: "Mezmur not found",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Mezmur retrieved successfully",
+      mezmur: mezmur,
+    });
+  } catch (error) {
+    console.error("Get mezmur by ID error:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+}
+
+//delete mezmur and mezmur category
+export async function deleteCategory(req: Request, res: Response) {}
+
+export async function deleteMezmur(req: Request, res: Response) {}
+
+//update mezmur and mezmur category
+export async function updateCategory(req: Request, res: Response) {}
+
+export async function updateMezmur(req: Request, res: Response) {}
