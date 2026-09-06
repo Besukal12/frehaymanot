@@ -10,6 +10,8 @@ import {
   getCategory,
   getMezmur,
   getMezmurById,
+  deleteCategory,
+  deleteMezmur
 } from "../../modules/mezmur/mezmur.controller.js";
 import upload from "../../middleware/upload/uploadToCloudinary.js";
 
@@ -30,5 +32,9 @@ router.post(
 router.get("/mezmur-category", getCategory);
 router.get("/get-mezmur", getMezmur);
 router.get("/get-mezmur/:id", getMezmurById);
+
+//delete routes for mezmur and mezmur category
+router.delete("/delete-category", deleteCategory);
+router.delete("/delete-mezmur", deleteMezmur);
 
 export default router;
