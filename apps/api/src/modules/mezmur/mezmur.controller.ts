@@ -44,15 +44,14 @@ export async function addCategory(req: Request, res: Response) {
 
 export async function addMezmur(req: Request, res: Response) {
   try {
-    // const { userId } = getAuth(req);
+    const { userId } = getAuth(req);
 
-    // if (!userId) {
-    //   return res.status(401).json({
-    //     message: "Unauthorized",
-    //   });
-    // }
+    if (!userId) {
+      return res.status(401).json({
+        message: "Unauthorized",
+      });
+    }
 
-    const userId = "besukal";
 
     const mezmurData = MezmurSchema.safeParse(req.body);
 
@@ -64,26 +63,24 @@ export async function addMezmur(req: Request, res: Response) {
     }
 
     const {
-      title: title,
-      description: description,
-      categoryId: categoryId,
+      title,
+      description,
+      categoryId,
     } = mezmurData.data;
 
-    // const category = await prisma.mezmurCategory.findUnique({
-    //   where: {
-    //     id: categoryId,
-    //   },
-    // });
+    const category = await prisma.mezmurCategory.findUnique({
+      where: {
+        id: categoryId,
+      },
+    });
 
-    // if (!category) {
-    //   return res.status(404).json({
-    //     message: "Category not found",
-    //   });
-    // }
+    if (!category) {
+      return res.status(404).json({
+        message: "Category not found",
+      });
+    }
 
-    const category = 1;
-
-    const files = req.files as {
+    const files = (req.files ?? {}) as {
       thumbnail?: Express.Multer.File[];
       pdf?: Express.Multer.File[];
     };
