@@ -16,11 +16,11 @@ model MezmurCategory {
   id          Int      @id @default(autoincrement())
   name        String
   description String
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  // Relation to Mezmurs
-  mezmurs Mezmur[]
+  // Relation 
+  Mezmurs Mezmur[]
 }
 
 model Mezmur {
@@ -30,13 +30,11 @@ model Mezmur {
   categoryId         Int
   thumbnailUrl       String?
   thumbnailStorageId String?
-  storagePath        String
-  mimeType           String
-  fileSize           Int
-  fileName           String
-  uploadedById       Int
-  createdAt          DateTime @default(now()) @map("created_at")
-  updatedAt          DateTime @updatedAt @map("updated_at")
+  pdfUrl             String?
+  pdfStorageId       String?
+  uploadedById       String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   // Relations
   category MezmurCategory @relation(fields: [categoryId], references: [id])
