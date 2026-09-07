@@ -143,7 +143,7 @@ export async function addCourse(req: Request, res: Response) {
   }
 }
 
-//get mezmur and mezmur category
+//get course and course category
 export async function getCategory(req: Request, res: Response) {
   try {
     const categories = await prisma.courseCategory.findMany();
@@ -211,10 +211,11 @@ export async function getCourseById(req: Request, res: Response) {
   }
 }
 
-//delete mezmur and mezmur category
+//delete course and course category
 export async function deleteCategory(req: Request, res: Response) {
   try {
-    const categoryId = Number(req.params.id);
+    const { id } = req.params;
+    const categoryId = Number(id);
 
     if (!Number.isInteger(categoryId) || categoryId <= 0) {
       return res.status(404).json({
@@ -263,7 +264,8 @@ export async function deleteCourse(req: Request, res: Response) {
       });
     }
 
-    const courseId = Number(req.params.id);
+    const { id } = req.params;
+    const courseId = Number(id);
 
     if (!Number.isInteger(courseId) || courseId <= 0) {
       return res.status(404).json({
@@ -323,10 +325,11 @@ export async function deleteCourse(req: Request, res: Response) {
   }
 }
 
-//update mezmur and mezmur category
+//update course and course category
 export async function updateCategory(req: Request, res: Response) {
   try {
-    const categoryId = Number(req.params.id);
+    const { id } = req.params;
+    const categoryId = Number(id);
 
     if (!Number.isInteger(categoryId) || categoryId <= 0) {
       return res.status(404).json({
@@ -385,7 +388,8 @@ export async function updateCourse(req: Request, res: Response) {
       });
     }
 
-    const courseId = Number(req.params.id);
+    const { id } = req.params;
+    const courseId = Number(id);
 
     if (!Number.isInteger(courseId) || courseId <= 0) {
       return res.status(404).json({

@@ -8,16 +8,19 @@ import {
   deleteCategory,
   deleteMezmur,
   updateCategory,
-  updateMezmur
+  updateMezmur,
 } from "../../modules/mezmur/mezmur.controller.js";
 import upload from "../../middleware/upload/uploadToCloudinary.js";
 
 const router = Router();
 
-// post routes for mezmur and mezmur category
-router.post("/category", addCategory);
+router.post("/categories", addCategory);
+router.get("/categories", getCategory);
+router.patch("/categories/:id", updateCategory);
+router.delete("/categories/:id", deleteCategory);
+
 router.post(
-  "/add",
+  "/mezmurs",
   upload.fields([
     { name: "thumbnail", maxCount: 1 },
     { name: "pdf", maxCount: 1 },
@@ -25,17 +28,18 @@ router.post(
   addMezmur,
 );
 
-//get routes for mezmur and mezmur category
-router.get("/get-category", getCategory);
-router.get("/get-mezmur", getMezmur);
-router.get("/get-mezmur/:id", getMezmurById);
+router.get("/mezmurs", getMezmur);
+router.get("/mezmurs/:id", getMezmurById);
 
-//delete routes for mezmur and mezmur category
-router.delete("/delete-category", deleteCategory);
-router.delete("/delete-mezmur", deleteMezmur);
+router.patch(
+  "/mezmurs/:id",
+  upload.fields([
+    { name: "thumbnail", maxCount: 1 },
+    { name: "pdf", maxCount: 1 },
+  ]),
+  updateMezmur,
+);
 
-//update routest for mezmur and mezmur category
-router.post("/update-category", updateCategory)
-router.post("/update-mezmur", updateMezmur)
+router.delete("/mezmurs/:id", deleteMezmur);
 
 export default router;

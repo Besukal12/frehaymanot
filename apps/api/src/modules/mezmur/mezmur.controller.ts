@@ -213,7 +213,8 @@ export async function getMezmurById(req: Request, res: Response) {
 //delete mezmur and mezmur category
 export async function deleteCategory(req: Request, res: Response) {
   try {
-    const categoryId = Number(req.params.id);
+    const { id } = req.params;
+    const categoryId = Number(id);
 
     if (!Number.isInteger(categoryId) || categoryId <= 0) {
       return res.status(404).json({
@@ -262,7 +263,8 @@ export async function deleteMezmur(req: Request, res: Response) {
       });
     }
 
-    const mezmurId = Number(req.params.id);
+    const { id } = req.params;
+    const mezmurId = Number(id);
 
     if (!Number.isInteger(mezmurId) || mezmurId <= 0) {
       return res.status(404).json({
@@ -325,7 +327,8 @@ export async function deleteMezmur(req: Request, res: Response) {
 //update mezmur and mezmur category
 export async function updateCategory(req: Request, res: Response) {
   try {
-    const categoryId = Number(req.params.id);
+    const { id } = req.params;
+    const categoryId = Number(id);
 
     if (!Number.isInteger(categoryId) || categoryId <= 0) {
       return res.status(404).json({
@@ -384,7 +387,8 @@ export async function updateMezmur(req: Request, res: Response) {
       });
     }
 
-    const mezmurId = Number(req.params.id);
+    const { id } = req.params;
+    const mezmurId = Number(id);
 
     if (!Number.isInteger(mezmurId) || mezmurId <= 0) {
       return res.status(404).json({
