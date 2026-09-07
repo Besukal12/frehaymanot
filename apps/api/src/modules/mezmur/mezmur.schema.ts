@@ -4,10 +4,6 @@ export const MezmurSchema = z.object({
   title: z.string().max(255),
   description: z.string().max(255).optional(),
   categoryId: z.coerce.number().int().positive(),
-  thumbnailUrl: z.string().url().optional(),
-  thumbnailStorageId: z.string().uuid().optional(),
-  pdfUrl: z.string().url().optional(),
-  pdfStorageId: z.string().uuid().optional(),
 });
 
 export const MezmurCategorySchema = z.object({

@@ -115,9 +115,9 @@ export async function addMezmur(req: Request, res: Response) {
 
     const newMezmur = await prisma.mezmur.create({
       data: {
-        title: mezmurData.data.title,
-        description: mezmurData.data.description,
-        categoryId: mezmurData.data.categoryId,
+        title: title,
+        description: description,
+        categoryId: categoryId,
 
         thumbnailUrl: uploadedThumbnail.secure_url,
         thumbnailStorageId: uploadedThumbnail.public_id,
@@ -152,7 +152,7 @@ export async function getCategory(req: Request, res: Response) {
       categories: categories,
     });
   } catch (error) {
-    console.error("Get category error:", error);
+    console.error("Get mezmur category error:", error);
     return res.status(500).json({
       message: "Internal server error",
     });
