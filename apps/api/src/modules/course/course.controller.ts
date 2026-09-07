@@ -5,6 +5,7 @@ import {
   validateFileType,
   uploadToCloudinary,
 } from "../../middleware/upload/uploadToCloudinary.js";
+import cloudinary from "../../config/cloudinary.js";
 import { CourseCategorySchema, CourseSchema } from "./course.schema.js";
 
 // add course and course category
@@ -161,7 +162,7 @@ export async function getCategory(req: Request, res: Response) {
 
 export async function getMezmur(req: Request, res: Response) {
   try {
-    const course = await prisma.mezmur.findMany({
+    const course = await prisma.course.findMany({
       include: {
         category: true,
       },
@@ -169,7 +170,7 @@ export async function getMezmur(req: Request, res: Response) {
 
     return res.status(200).json({
       message: "Courses retrieved successfully",
-      mezmurs: course,
+      courses: course,
     });
   } catch (error) {
     console.error("Get course error:", error);
@@ -183,7 +184,7 @@ export async function getMezmurById(req: Request, res: Response) {
   try {
     const { id } = req.params;
 
-    const mezmur = await prisma.mezmur.findUnique({
+    const course = await prisma.course.findUnique({
       where: {
         id: Number(id),
       },
@@ -192,18 +193,18 @@ export async function getMezmurById(req: Request, res: Response) {
       },
     });
 
-    if (!mezmur) {
+    if (!course) {
       return res.status(404).json({
         message: "Mezmur not found",
       });
     }
 
     return res.status(200).json({
-      message: "Mezmur retrieved successfully",
-      mezmur: mezmur,
+      message: "Course retrieved successfully",
+      course: course,
     });
   } catch (error) {
-    console.error("Get mezmur by ID error:", error);
+    console.error("Get course by ID error:", error);
     return res.status(500).json({
       message: "Internal server error",
     });
@@ -233,7 +234,7 @@ export async function deleteCategory(req: Request, res: Response) {
       });
     }
 
-    await prisma.mezmurCategory.delete({
+    await prisma.courseCategory.delete({
       where: {
         id: categoryId,
       },
@@ -244,7 +245,7 @@ export async function deleteCategory(req: Request, res: Response) {
       category,
     });
   } catch (error) {
-    console.error("Delete category error:", error);
+    console.error("Delete course category error:", error);
 
     return res.status(500).json({
       message: "Internal server error",
@@ -262,59 +263,59 @@ export async function deleteMezmur(req: Request, res: Response) {
       });
     }
 
-    const mezmurId = Number(req.params.id);
+    const courseId = Number(req.params.id);
 
-    if (!Number.isInteger(mezmurId) || mezmurId <= 0) {
+    if (!Number.isInteger(courseId) || courseId <= 0) {
       return res.status(404).json({
-        message: "Invalid mezmur ID",
+        message: "Invalid course ID",
       });
     }
 
-    const mezmur = await prisma.mezmur.findUnique({
+    const course = await prisma.course.findUnique({
       where: {
-        id: mezmurId,
+        id: courseId,
       },
     });
 
-    if (!mezmur) {
+    if (!course) {
       return res.status(404).json({
-        message: "Mezmur not found",
+        message: "Course not found",
       });
     }
 
-    const isOwner = mezmur.uploadedById === userId;
+    const isOwner = course.uploadedById === userId;
     const isAdmin = orgRole === "admin";
 
     if (!isOwner && !isAdmin) {
       return res.status(403).json({
-        message: "You are not authorized to delete this mezmur.",
+        message: "You are not authorized to delete this course.",
       });
     }
 
-    if (mezmur.thumbnailStorageId) {
-      await cloudinary.uploader.destroy(mezmur.thumbnailStorageId, {
+    if (course.thumbnailStorageId) {
+      await cloudinary.uploader.destroy(course.thumbnailStorageId, {
         resource_type: "image",
       });
     }
 
-    if (mezmur.pdfStorageId) {
-      await cloudinary.uploader.destroy(mezmur.pdfStorageId, {
+    if (course.pdfStorageId) {
+      await cloudinary.uploader.destroy(course.pdfStorageId, {
         resource_type: "raw",
       });
     }
 
-    await prisma.mezmur.delete({
+    await prisma.course.delete({
       where: {
-        id: mezmurId,
+        id: courseId,
       },
     });
 
     return res.status(200).json({
-      message: "Mezmur deleted successfully",
-      mezmur,
+      message: "Course deleted successfully",
+      course,
     });
   } catch (error) {
-    console.error("Delete mezmur error:", error);
+    console.error("Delete course error:", error);
 
     return res.status(500).json({
       message: "Internal server error",

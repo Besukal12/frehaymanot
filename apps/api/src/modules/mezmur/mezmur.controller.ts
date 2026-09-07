@@ -244,7 +244,7 @@ export async function deleteCategory(req: Request, res: Response) {
       category,
     });
   } catch (error) {
-    console.error("Delete category error:", error);
+    console.error("Delete mezmur category error:", error);
 
     return res.status(500).json({
       message: "Internal server error",
