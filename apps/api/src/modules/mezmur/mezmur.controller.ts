@@ -362,7 +362,7 @@ export async function updateCategory(req: Request, res: Response) {
     });
 
     return res.status(200).json({
-      message: "Category updated successfully.",
+      message: "Mezmur category updated successfully.",
       category: updatedCategory,
     });
   } catch (error) {

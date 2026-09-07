@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import {prisma} from "../../config/prisma.js"
+import { prisma } from "../../config/prisma.js";
 import { getAuth } from "@clerk/express";
 import {
   validateFileType,
@@ -44,7 +44,7 @@ export async function addCategory(req: Request, res: Response) {
   }
 }
 
-export async function addMezmur(req: Request, res: Response) {
+export async function addCourse(req: Request, res: Response) {
   try {
     const { userId } = getAuth(req);
 
@@ -160,7 +160,7 @@ export async function getCategory(req: Request, res: Response) {
   }
 }
 
-export async function getMezmur(req: Request, res: Response) {
+export async function getCourse(req: Request, res: Response) {
   try {
     const course = await prisma.course.findMany({
       include: {
@@ -180,7 +180,7 @@ export async function getMezmur(req: Request, res: Response) {
   }
 }
 
-export async function getMezmurById(req: Request, res: Response) {
+export async function getCourseById(req: Request, res: Response) {
   try {
     const { id } = req.params;
 
@@ -253,7 +253,7 @@ export async function deleteCategory(req: Request, res: Response) {
   }
 }
 
-export async function deleteMezmur(req: Request, res: Response) {
+export async function deleteCourse(req: Request, res: Response) {
   try {
     const { userId, orgRole } = getAuth(req);
 
@@ -334,7 +334,7 @@ export async function updateCategory(req: Request, res: Response) {
       });
     }
 
-    const category = await prisma.mezmurCategory.findUnique({
+    const category = await prisma.courseCategory.findUnique({
       where: {
         id: categoryId,
       },
@@ -346,7 +346,7 @@ export async function updateCategory(req: Request, res: Response) {
       });
     }
 
-    const safeData = MezmurCategorySchema.partial().safeParse(req.body);
+    const safeData = CourseCategorySchema.partial().safeParse(req.body);
 
     if (!safeData.success) {
       return res.status(400).json({
@@ -355,7 +355,7 @@ export async function updateCategory(req: Request, res: Response) {
       });
     }
 
-    const updatedCategory = await prisma.mezmurCategory.update({
+    const updatedCategory = await prisma.courseCategory.update({
       where: {
         id: categoryId,
       },
@@ -363,11 +363,11 @@ export async function updateCategory(req: Request, res: Response) {
     });
 
     return res.status(200).json({
-      message: "Category updated successfully.",
+      message: "Course category updated successfully.",
       category: updatedCategory,
     });
   } catch (error) {
-    console.error("Update category error:", error);
+    console.error("Update course category error:", error);
 
     return res.status(500).json({
       message: "Internal server error",
@@ -375,7 +375,7 @@ export async function updateCategory(req: Request, res: Response) {
   }
 }
 
-export async function updateMezmur(req: Request, res: Response) {
+export async function updateCourse(req: Request, res: Response) {
   try {
     const { userId, orgRole } = getAuth(req);
 
@@ -385,36 +385,36 @@ export async function updateMezmur(req: Request, res: Response) {
       });
     }
 
-    const mezmurId = Number(req.params.id);
+    const courseId = Number(req.params.id);
 
-    if (!Number.isInteger(mezmurId) || mezmurId <= 0) {
+    if (!Number.isInteger(courseId) || courseId <= 0) {
       return res.status(404).json({
-        message: "Invalid mezmur ID",
+        message: "Invalid course ID",
       });
     }
 
-    const mezmur = await prisma.mezmur.findUnique({
+    const course = await prisma.course.findUnique({
       where: {
-        id: mezmurId,
+        id: courseId,
       },
     });
 
-    if (!mezmur) {
+    if (!course) {
       return res.status(404).json({
-        message: "Mezmur not found",
+        message: "Course not found",
       });
     }
 
-    const isOwner = mezmur.uploadedById === userId;
+    const isOwner = course.uploadedById === userId;
     const isAdmin = orgRole === "admin";
 
     if (!isOwner && !isAdmin) {
       return res.status(403).json({
-        message: "You are not authorized to update this mezmur.",
+        message: "You are not authorized to update this course.",
       });
     }
 
-    const safeData = MezmurSchema.partial().safeParse(req.body);
+    const safeData = CourseSchema.partial().safeParse(req.body);
 
     if (!safeData.success) {
       return res.status(400).json({
@@ -423,10 +423,10 @@ export async function updateMezmur(req: Request, res: Response) {
       });
     }
 
-    const { title, description, categoryId } = safeData.data;
+    const { title, description, categoryId, grade } = safeData.data;
 
     if (categoryId !== undefined) {
-      const category = await prisma.mezmurCategory.findUnique({
+      const category = await prisma.courseCategory.findUnique({
         where: {
           id: categoryId,
         },
@@ -451,6 +451,7 @@ export async function updateMezmur(req: Request, res: Response) {
       ...(title !== undefined && { title }),
       ...(description !== undefined && { description }),
       ...(categoryId !== undefined && { categoryId }),
+      ...(grade !== undefined && { grade }),
     };
 
     let oldThumbnailStorageId: string | null = null;
@@ -472,7 +473,7 @@ export async function updateMezmur(req: Request, res: Response) {
 
       updateData.thumbnailUrl = uploadedThumbnail.secure_url;
       updateData.thumbnailStorageId = uploadedThumbnail.public_id;
-      oldThumbnailStorageId = mezmur.thumbnailStorageId;
+      oldThumbnailStorageId = course.thumbnailStorageId;
     }
 
     if (pdf) {
@@ -488,12 +489,12 @@ export async function updateMezmur(req: Request, res: Response) {
 
       updateData.pdfUrl = uploadedPdf.secure_url;
       updateData.pdfStorageId = uploadedPdf.public_id;
-      oldPdfStorageId = mezmur.pdfStorageId;
+      oldPdfStorageId = course.pdfStorageId;
     }
 
-    const updatedMezmur = await prisma.mezmur.update({
+    const updatedMezmur = await prisma.course.update({
       where: {
-        id: mezmurId,
+        id: courseId,
       },
       data: updateData,
     });
@@ -512,11 +513,11 @@ export async function updateMezmur(req: Request, res: Response) {
     }
 
     return res.status(200).json({
-      message: "Mezmur updated successfully",
+      message: "Course updated successfully",
       mezmur: updatedMezmur,
     });
   } catch (error) {
-    console.error("Update mezmur error:", error);
+    console.error("Update Course error:", error);
 
     return res.status(500).json({
       message: "Internal server error",
