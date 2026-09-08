@@ -65,74 +65,61 @@ export interface NavGroup {
 export const sidebarItems: NavGroup[] = [
   {
     id: 1,
-    label: "Dashboards",
     items: [
       {
-        id: "default",
-        title: "Default",
-        url: "/dashboard/default",
+        id: "overview",
+        title: "Overview",
+        url: "/dashboard",
         icon: LayoutDashboard,
       },
       {
-        id: "crm",
-        title: "CRM",
-        url: "/dashboard/crm",
-        icon: ChartBar,
-      },
-      {
-        id: "finance",
-        title: "Finance",
-        url: "/dashboard/finance",
-        icon: Banknote,
-      },
-      {
-        id: "analytics",
-        title: "Analytics",
-        url: "/dashboard/analytics",
-        icon: Gauge,
-      },
-      {
-        id: "productivity",
-        title: "Productivity",
-        url: "/dashboard/productivity",
-        icon: ListTodo,
-      },
-      {
-        id: "ecommerce",
-        title: "E-commerce",
-        url: "/dashboard/ecommerce",
-        icon: ShoppingBag,
-      },
-      {
-        id: "academy",
-        title: "Academy",
-        url: "/dashboard/academy",
-        icon: GraduationCap,
-      },
-      {
-        id: "logistics",
-        title: "Logistics",
-        url: "/dashboard/logistics",
+        id: "announcements",
+        title: "Announcements",
+        url: "/dashboard/announcements",
         icon: Forklift,
       },
       {
-        id: "infrastructure",
-        title: "Infrastructure",
-        url: "/dashboard/infrastructure",
+        id: "feedback",
+        title: "Feedback",
+        url: "/dashboard/feedback",
         icon: Server,
       },
+    ],
+  },
+  {
+    id: 2,
+    label: "Mezmur",
+    items: [
       {
-        id: "file-manager",
-        title: "File Manager",
-        url: "/dashboard/file-manager",
-        icon: FolderOpen,
+        id: "mezmur-category",
+        title: "Mezmur Category",
+        url: "/dashboard/mezmur-category",
+        icon: ShoppingBag,
       },
       {
-        id: "patient-monitoring",
-        title: "Patient Monitoring",
-        url: "/dashboard/patient-monitoring",
-        icon: HeartPulse,
+        id: "mezmur",
+        title: "Mezmur",
+        url: "/dashboard/mezmur",
+        icon: GraduationCap,
       },
     ],
-  }
+  },
+  {
+    id: 3,
+    label: "Course",
+    items: [
+      {
+        id: "course-category",
+        title: "Course Category",
+        url: "/dashboard/course-category",
+        icon: ShoppingBag,
+      },
+      {
+        id: "course",
+        title: "Course",
+        url: "/dashboard/course",
+        icon: GraduationCap,
+      },
+    ],
+  },
 ];
