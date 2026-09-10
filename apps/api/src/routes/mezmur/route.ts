@@ -14,13 +14,13 @@ import upload from "../../middleware/upload/uploadToCloudinary.js";
 
 const router = Router();
 
-router.post("/categories", addCategory);
-router.get("/categories", getCategory);
-router.patch("/categories/:id", updateCategory);
-router.delete("/categories/:id", deleteCategory);
+router.post("/categories-add", addCategory);
+router.get("/categories-get", getCategory);
+router.patch("/categories-update/:id", updateCategory);
+router.delete("/categories-delete/:id", deleteCategory);
 
 router.post(
-  "/mezmurs",
+  "/add",
   upload.fields([
     { name: "thumbnail", maxCount: 1 },
     { name: "pdf", maxCount: 1 },
@@ -28,11 +28,11 @@ router.post(
   addMezmur,
 );
 
-router.get("/mezmurs", getMezmur);
-router.get("/mezmurs/:id", getMezmurById);
+router.get("/get", getMezmur);
+router.get("/get/:id", getMezmurById);
 
 router.patch(
-  "/mezmurs/:id",
+  "/update/:id",
   upload.fields([
     { name: "thumbnail", maxCount: 1 },
     { name: "pdf", maxCount: 1 },
@@ -40,6 +40,6 @@ router.patch(
   updateMezmur,
 );
 
-router.delete("/mezmurs/:id", deleteMezmur);
+router.delete("/delete/:id", deleteMezmur);
 
 export default router;
