@@ -20,7 +20,7 @@ router.patch("/categories/:id", updateCategory);
 router.delete("/categories/:id", deleteCategory);
 
 router.post(
-  "/courses",
+  "/create",
   upload.fields([
     { name: "thumbnail", maxCount: 1 },
     { name: "pdf", maxCount: 1 },
@@ -28,11 +28,11 @@ router.post(
   addCourse,
 );
 
-router.get("/courses", getCourse);
-router.get("/courses/:id", getCourseById);
+router.get("/get", getCourse);
+router.get("/get/:id", getCourseById);
 
 router.patch(
-  "/courses/:id",
+  "/update/:id",
   upload.fields([
     { name: "thumbnail", maxCount: 1 },
     { name: "pdf", maxCount: 1 },
@@ -40,6 +40,6 @@ router.patch(
   updateCourse,
 );
 
-router.delete("/courses/:id", deleteCourse);
+router.delete("/delete/:id", deleteCourse);
 
 export default router;

@@ -13,7 +13,7 @@ import upload from "../../middleware/upload/uploadToCloudinary.js";
 const router = Router();
 
 router.post(
-  "/",
+  "/create",
   upload.fields([
     {
       name: "thumbnail",
@@ -23,12 +23,12 @@ router.post(
   addAnnouncement,
 );
 
-router.get("/", getAnnouncements);
+router.get("/get", getAnnouncements);
 
-router.get("/:id", getAnnouncementById);
+router.get("/get/:id", getAnnouncementById);
 
 router.patch(
-  "/:id",
+  "/update/:id",
   upload.fields([
     {
       name: "thumbnail",
@@ -38,6 +38,6 @@ router.patch(
   updateAnnouncement,
 );
 
-router.delete("/:id", deleteAnnouncement);
+router.delete("/delete/:id", deleteAnnouncement);
 
 export default router;
