@@ -2,13 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { 
-  Plus, 
-  Search, 
-  Filter,
-  BookOpen,
-  ArrowUpDown
-} from "lucide-react";
+import { Plus, Search, Filter, BookOpen, ArrowUpDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,7 +28,8 @@ const MOCK_COURSES: Course[] = [
   {
     id: 1,
     title: "Introduction to Dogmatic Theology",
-    description: "A comprehensive overview of foundational theological concepts in the Orthodox tradition. Covers Christology, Pneumatology, and Trinitarian theology.",
+    description:
+      "A comprehensive overview of foundational theological concepts in the Orthodox tradition. Covers Christology, Pneumatology, and Trinitarian theology.",
     grade: 1,
     category: MOCK_CATEGORIES[0],
     uploadedById: "user_1",
@@ -44,7 +39,8 @@ const MOCK_COURSES: Course[] = [
   {
     id: 2,
     title: "Old Testament Survey",
-    description: "Exploring the historical books, prophets, and wisdom literature with patristic commentary and interpretations.",
+    description:
+      "Exploring the historical books, prophets, and wisdom literature with patristic commentary and interpretations.",
     grade: 1,
     category: MOCK_CATEGORIES[1],
     uploadedById: "user_2",
@@ -54,7 +50,8 @@ const MOCK_COURSES: Course[] = [
   {
     id: 3,
     title: "Church History: The First Seven Councils",
-    description: "Detailed study of the Ecumenical Councils, the heresies they addressed, and the formulation of the Creed.",
+    description:
+      "Detailed study of the Ecumenical Councils, the heresies they addressed, and the formulation of the Creed.",
     grade: 2,
     category: MOCK_CATEGORIES[2],
     uploadedById: "user_1",
@@ -64,7 +61,8 @@ const MOCK_COURSES: Course[] = [
   {
     id: 4,
     title: "Christian Ethics in Modern Society",
-    description: "Applying traditional Orthodox ethical teachings to contemporary moral dilemmas.",
+    description:
+      "Applying traditional Orthodox ethical teachings to contemporary moral dilemmas.",
     grade: 3,
     category: MOCK_CATEGORIES[3],
     uploadedById: "user_3",
@@ -73,7 +71,8 @@ const MOCK_COURSES: Course[] = [
   {
     id: 5,
     title: "Advanced Pauline Epistles",
-    description: "In-depth exegesis of Romans and Galatians, focusing on the concepts of grace, law, and justification.",
+    description:
+      "In-depth exegesis of Romans and Galatians, focusing on the concepts of grace, law, and justification.",
     grade: 4,
     category: MOCK_CATEGORIES[1],
     uploadedById: "user_2",
@@ -88,27 +87,31 @@ export default function CoursesPage() {
   const [sortBy, setSortBy] = useState("newest");
 
   // Filtering and sorting logic
-  const filteredCourses = MOCK_COURSES
-    .filter(course => {
-      const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                           (course.description?.toLowerCase().includes(searchQuery.toLowerCase()));
-      const matchesCategory = selectedCategory === null || course.category.id === selectedCategory;
-      return matchesSearch && matchesCategory;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "newest":
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        case "oldest":
-          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-        case "title-asc":
-          return a.title.localeCompare(b.title);
-        case "grade":
-          return a.grade - b.grade;
-        default:
-          return 0;
-      }
-    });
+  const filteredCourses = MOCK_COURSES.filter((course) => {
+    const matchesSearch =
+      course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      selectedCategory === null || course.category.id === selectedCategory;
+    return matchesSearch && matchesCategory;
+  }).sort((a, b) => {
+    switch (sortBy) {
+      case "newest":
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      case "oldest":
+        return (
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+      case "title-asc":
+        return a.title.localeCompare(b.title);
+      case "grade":
+        return a.grade - b.grade;
+      default:
+        return 0;
+    }
+  });
 
   return (
     <div className="flex-1 space-y-6 p-8 pt-6">
@@ -116,12 +119,16 @@ export default function CoursesPage() {
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Courses</h2>
           <p className="text-muted-foreground mt-1">
-            Manage educational materials and course curriculum ({MOCK_COURSES.length} total)
+            Manage educational materials and course curriculum (
+            {MOCK_COURSES.length} total)
           </p>
         </div>
         <div className="flex gap-2">
           <Link href="/dashboard/course/categories">
-            <Button variant="outline" className="gap-2 text-blue-600 border-blue-200 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-900 dark:hover:bg-blue-900/50">
+            <Button
+              variant="outline"
+              className="gap-2 text-blue-600 border-blue-200 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-900 dark:hover:bg-blue-900/50"
+            >
               <Filter className="w-4 h-4" />
               Categories
             </Button>
@@ -149,23 +156,29 @@ export default function CoursesPage() {
 
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge 
+            <Badge
               variant={selectedCategory === null ? "default" : "outline"}
               className={cn(
-                "cursor-pointer", 
-                selectedCategory === null ? "bg-blue-600 hover:bg-blue-700" : ""
+                "cursor-pointer",
+                selectedCategory === null
+                  ? "bg-blue-600 hover:bg-blue-700"
+                  : "",
               )}
               onClick={() => setSelectedCategory(null)}
             >
               All
             </Badge>
-            {MOCK_CATEGORIES.map(category => (
-              <Badge 
+            {MOCK_CATEGORIES.map((category) => (
+              <Badge
                 key={category.id}
-                variant={selectedCategory === category.id ? "default" : "outline"}
+                variant={
+                  selectedCategory === category.id ? "default" : "outline"
+                }
                 className={cn(
                   "cursor-pointer",
-                  selectedCategory === category.id ? "bg-blue-600 hover:bg-blue-700" : ""
+                  selectedCategory === category.id
+                    ? "bg-blue-600 hover:bg-blue-700"
+                    : "",
                 )}
                 onClick={() => setSelectedCategory(category.id)}
               >
@@ -174,7 +187,14 @@ export default function CoursesPage() {
             ))}
           </div>
 
-          <Select value={sortBy} onValueChange={setSortBy}>
+          <Select
+            value={sortBy}
+            onValueChange={(value) => {
+              if (value !== null) {
+                setSortBy(value);
+              }
+            }}
+          >
             <SelectTrigger className="w-[180px] bg-background">
               <div className="flex items-center gap-2">
                 <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
@@ -205,10 +225,11 @@ export default function CoursesPage() {
           </div>
           <h3 className="text-xl font-semibold mb-2">No courses found</h3>
           <p className="text-muted-foreground max-w-md">
-            We couldn't find any courses matching your current filters. Try adjusting your search or category selection.
+            We couldn't find any courses matching your current filters. Try
+            adjusting your search or category selection.
           </p>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="mt-6 text-blue-600 border-blue-200"
             onClick={() => {
               setSearchQuery("");
