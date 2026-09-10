@@ -6,96 +6,20 @@ import { Plus, Music, ListMusic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MezmurFilters } from "./_components/MezmurFilters";
 import { MezmurCard } from "./_components/MezmurCard";
-
-export type Mezmur = {
-  id: number;
-  title: string;
-  description?: string | null;
-  thumbnailUrl?: string | null;
-  pdfUrl?: string | null;
-  category: { id: number; name: string };
-  uploadedById: string;
-  createdAt: string | Date;
-};
-
-// Mock data
-const mockCategories = [
-  { id: 1, name: "New Year" },
-  { id: 2, name: "Fasting" },
-  { id: 3, name: "Easter" },
-  { id: 4, name: "Meskel" },
-];
-
-const mockMezmurs: Mezmur[] = [
-  {
-    id: 1,
-    title: "Awde Amet Yihunlin",
-    description: "A beautiful New Year mezmur welcoming the Ethiopian New Year.",
-    thumbnailUrl: null,
-    pdfUrl: "/mock/mezmur1.pdf",
-    category: mockCategories[0],
-    uploadedById: "user1",
-    createdAt: new Date("2024-09-01"),
-  },
-  {
-    id: 2,
-    title: "Tsom Tsom",
-    description: "A contemplative fasting season mezmur.",
-    thumbnailUrl: "https://images.unsplash.com/photo-1544006659-f0b21884ce1d?w=800&auto=format&fit=crop&q=60",
-    pdfUrl: null,
-    category: mockCategories[1],
-    uploadedById: "user2",
-    createdAt: new Date("2024-03-15"),
-  },
-  {
-    id: 3,
-    title: "Tinsae",
-    description: "Joyful Easter celebration mezmur.",
-    thumbnailUrl: null,
-    pdfUrl: "/mock/tinsae.pdf",
-    category: mockCategories[2],
-    uploadedById: "user1",
-    createdAt: new Date("2024-04-20"),
-  },
-  {
-    id: 4,
-    title: "Meskel Keber",
-    description: "Meskel holiday special mezmur collection.",
-    thumbnailUrl: "https://images.unsplash.com/photo-1507692049790-de58290a4334?w=800&auto=format&fit=crop&q=60",
-    pdfUrl: "/mock/meskel.pdf",
-    category: mockCategories[3],
-    uploadedById: "user3",
-    createdAt: new Date("2024-09-27"),
-  },
-  {
-    id: 5,
-    title: "Abet Enkwan Des Alen",
-    description: "Another beautiful new year song for the season.",
-    thumbnailUrl: null,
-    pdfUrl: null,
-    category: mockCategories[0],
-    uploadedById: "user1",
-    createdAt: new Date("2024-08-30"),
-  },
-  {
-    id: 6,
-    title: "Kidanetsigenina",
-    description: "Traditional fasting chant and mezmur.",
-    thumbnailUrl: null,
-    pdfUrl: "/mock/kidan.pdf",
-    category: mockCategories[1],
-    uploadedById: "user2",
-    createdAt: new Date("2024-02-28"),
-  },
-];
+import { useFetch } from "@/hooks/use-fetch";
+import { getMezmurs, getMezmurCategories } from "@/lib/api";
+import { CardSkeleton } from "@/components/ui/loading-skeleton";
 
 export default function MezmursPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
 
+  const { data: mezmurs, isLoading: isLoadingMezmurs, error: errorMezmurs } = useFetch(getMezmurs);
+  const { data: categories, isLoading: isLoadingCategories } = useFetch(getMezmurCategories);
+
   const filteredMezmurs = useMemo(() => {
-    let result = [...mockMezmurs];
+    let result = [...(mezmurs || [])];
 
     // Search filter
     if (searchQuery.trim()) {
@@ -109,7 +33,7 @@ export default function MezmursPage() {
 
     // Category filter
     if (selectedCategory !== "all") {
-      result = result.filter((m) => m.category.id.toString() === selectedCategory);
+      result = result.filter((m) => m.categoryId.toString() === selectedCategory);
     }
 
     // Sorting
@@ -125,7 +49,11 @@ export default function MezmursPage() {
     });
 
     return result;
-  }, [searchQuery, selectedCategory, sortBy]);
+  }, [searchQuery, selectedCategory, sortBy, mezmurs]);
+
+  if (errorMezmurs) {
+    return <div className="p-8 text-red-500">Error loading mezmurs: {errorMezmurs}</div>;
+  }
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -136,7 +64,7 @@ export default function MezmursPage() {
             Mezmurs
           </h2>
           <p className="text-muted-foreground mt-1">
-            Manage your mezmurs library. {mockMezmurs.length} total items.
+            Manage your mezmurs library. {mezmurs?.length || 0} total items.
           </p>
         </div>
         <Link href="/dashboard/mezmur/create">
@@ -147,17 +75,26 @@ export default function MezmursPage() {
         </Link>
       </div>
 
-      <MezmurFilters
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-        sortBy={sortBy}
-        setSortBy={setSortBy}
-        categories={mockCategories}
-      />
+      {!isLoadingCategories && categories && (
+        <MezmurFilters
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          categories={categories}
+        />
+      )}
 
-      {filteredMezmurs.length > 0 ? (
+      {isLoadingMezmurs ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
+        </div>
+      ) : filteredMezmurs.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredMezmurs.map((mezmur) => (
             <MezmurCard key={mezmur.id} mezmur={mezmur} />

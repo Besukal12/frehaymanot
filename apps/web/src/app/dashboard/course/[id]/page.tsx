@@ -1,47 +1,58 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { format } from "date-fns";
-import { 
-  ArrowLeft, 
-  Edit, 
-  Trash2, 
-  BookOpen, 
-  GraduationCap, 
-  Clock, 
-  User, 
-  Download,
-  FileText,
-  FolderOpen
-} from "lucide-react";
-
+import { ArrowLeft, Edit, Trash2, BookOpen, GraduationCap, Clock, User, Download, FileText, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { useFetch } from "@/hooks/use-fetch";
+import { getCourseById, API_URL } from "@/lib/api";
+import { useAuth } from "@clerk/nextjs";
+import { useRouter, useParams } from "next/navigation";
+import { Skeleton } from "@/components/ui/loading-skeleton";
 
-// Mock fetch function
-async function getCourseDetails(id: string) {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  return {
-    id: parseInt(id),
-    title: "Introduction to Dogmatic Theology",
-    description: "A comprehensive overview of foundational theological concepts in the Orthodox tradition. Covers Christology, Pneumatology, and Trinitarian theology. This course is designed for first-year seminary students and provides a rigorous examination of patristic sources and conciliar definitions.\n\nStudents will explore how the early Church articulated its faith in response to various challenges, learning to read primary texts with theological sensitivity. The course includes weekly readings, two major papers, and a final examination covering all dogmatic material.",
-    grade: 1,
-    thumbnailUrl: null, // intentionally null to show placeholder
-    pdfUrl: "https://example.com/syllabus.pdf",
-    category: { id: 1, name: "Theology" },
-    uploadedById: "Fr. John Smith",
-    createdAt: new Date("2024-01-15T08:30:00Z"),
-    updatedAt: new Date("2024-02-20T14:45:00Z"),
+export default function CourseDetailPage() {
+  const params = useParams();
+  const id = params.id as string;
+  const router = useRouter();
+  const { getToken } = useAuth();
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const { data: course, isLoading, error } = useFetch(() => getCourseById(id), [id]);
+
+  const handleDelete = async () => {
+    if (!confirm("Are you sure you want to delete this course?")) return;
+    
+    setIsDeleting(true);
+    try {
+      const token = await getToken();
+      const response = await fetch(`${API_URL}/api/course/delete/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) throw new Error("Failed to delete");
+      router.push("/dashboard/course");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete course");
+      setIsDeleting(false);
+    }
   };
-}
 
-export default async function CourseDetailPage(props: { params: Promise<{ id: string }> }) {
-  const { id } = await props.params;
-  const course = await getCourseDetails(id);
+  if (isLoading) {
+    return <div className="p-8 space-y-4 max-w-5xl mx-auto"><Skeleton className="h-10 w-48" /><Skeleton className="h-[400px] w-full" /></div>;
+  }
+
+  if (error || !course) {
+    return <div className="p-8 text-red-500">Error loading course: {error}</div>;
+  }
 
   return (
     <div className="flex-1 space-y-6 p-8 pt-6">
@@ -70,9 +81,9 @@ export default async function CourseDetailPage(props: { params: Promise<{ id: st
               Edit Course
             </Button>
           </Link>
-          <Button variant="destructive" className="gap-2">
+          <Button variant="destructive" className="gap-2" onClick={handleDelete} disabled={isDeleting}>
             <Trash2 className="w-4 h-4" />
-            Delete
+            {isDeleting ? "Deleting..." : "Delete"}
           </Button>
         </div>
       </div>
@@ -125,7 +136,7 @@ export default async function CourseDetailPage(props: { params: Promise<{ id: st
             <div className="flex flex-wrap items-center gap-3 mb-4">
               <Badge variant="secondary" className="px-3 py-1 text-sm bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900 flex items-center gap-1.5">
                 <FolderOpen className="h-3.5 w-3.5" />
-                {course.category.name}
+                {course.category?.name || "Unknown"}
               </Badge>
               <Badge variant="outline" className="px-3 py-1 text-sm border-blue-200 dark:border-blue-800 flex items-center gap-1.5">
                 <GraduationCap className="h-3.5 w-3.5 text-blue-500" />
@@ -139,7 +150,7 @@ export default async function CourseDetailPage(props: { params: Promise<{ id: st
             
             <div className="prose prose-blue dark:prose-invert max-w-none">
               <p className="text-lg leading-relaxed text-muted-foreground whitespace-pre-line">
-                {course.description}
+                {course.description || "No description provided."}
               </p>
             </div>
           </div>
@@ -153,7 +164,7 @@ export default async function CourseDetailPage(props: { params: Promise<{ id: st
                 <FolderOpen className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>
                   <p className="text-sm font-medium">Category</p>
-                  <p className="text-sm text-muted-foreground">{course.category.name}</p>
+                  <p className="text-sm text-muted-foreground">{course.category?.name || "Unknown"}</p>
                 </div>
               </div>
               

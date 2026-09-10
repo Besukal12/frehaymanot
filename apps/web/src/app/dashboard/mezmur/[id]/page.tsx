@@ -1,36 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Edit, Trash2, Calendar, User, Tag, Clock, FileText, Music, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-export type MezmurDetail = {
-  id: number;
-  title: string;
-  description?: string | null;
-  thumbnailUrl?: string | null;
-  pdfUrl?: string | null;
-  category: { id: number; name: string };
-  uploadedById: string;
-  createdAt: string | Date;
-  updatedAt: string | Date;
-};
-
-const mockFetchMezmur = async (id: string): Promise<MezmurDetail> => {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 500));
-  
-  return {
-    id: Number(id),
-    title: "Awde Amet Yihunlin",
-    description: "A beautiful New Year mezmur welcoming the Ethiopian New Year. This mezmur is often sung during the month of September (Meskerem) to celebrate the transition and the blooming of the Adey Abeba flower.",
-    thumbnailUrl: null,
-    pdfUrl: "/mock/mezmur1.pdf",
-    category: { id: 1, name: "New Year" },
-    uploadedById: "user1",
-    createdAt: new Date("2024-09-01"),
-    updatedAt: new Date("2024-09-05"),
-  };
-};
+import { useFetch } from "@/hooks/use-fetch";
+import { getMezmurById, API_URL } from "@/lib/api";
+import { useAuth } from "@clerk/nextjs";
+import { useRouter, useParams } from "next/navigation";
+import { Skeleton } from "@/components/ui/loading-skeleton";
+import { useState } from "react";
 
 function MetaItem({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
   return (
@@ -46,9 +25,44 @@ function MetaItem({ icon: Icon, label, value }: { icon: any; label: string; valu
   );
 }
 
-export default async function MezmurDetailPage(props: { params: Promise<{ id: string }> }) {
-  const { id } = await props.params;
-  const mezmur = await mockFetchMezmur(id);
+export default function MezmurDetailPage() {
+  const params = useParams();
+  const id = params.id as string;
+  const router = useRouter();
+  const { getToken } = useAuth();
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const { data: mezmur, isLoading, error } = useFetch(() => getMezmurById(id), [id]);
+
+  const handleDelete = async () => {
+    if (!confirm("Are you sure you want to delete this mezmur?")) return;
+    
+    setIsDeleting(true);
+    try {
+      const token = await getToken();
+      const response = await fetch(`${API_URL}/api/mezmur/mezmurs/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) throw new Error("Failed to delete");
+      router.push("/dashboard/mezmur");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete mezmur");
+      setIsDeleting(false);
+    }
+  };
+
+  if (isLoading) {
+    return <div className="p-8 space-y-4 max-w-5xl mx-auto"><Skeleton className="h-10 w-48" /><Skeleton className="h-[400px] w-full" /></div>;
+  }
+
+  if (error || !mezmur) {
+    return <div className="p-8 text-red-500">Error loading mezmur: {error}</div>;
+  }
 
   const createdDate = new Date(mezmur.createdAt).toLocaleDateString();
   const updatedDate = new Date(mezmur.updatedAt).toLocaleDateString();
@@ -69,9 +83,9 @@ export default async function MezmurDetailPage(props: { params: Promise<{ id: st
               Edit
             </Button>
           </Link>
-          <Button variant="destructive" size="sm" className="flex items-center gap-2">
+          <Button variant="destructive" size="sm" className="flex items-center gap-2" onClick={handleDelete} disabled={isDeleting}>
             <Trash2 className="w-4 h-4" />
-            Delete
+            {isDeleting ? "Deleting..." : "Delete"}
           </Button>
         </div>
       </div>
@@ -106,8 +120,10 @@ export default async function MezmurDetailPage(props: { params: Promise<{ id: st
                   <p className="text-xs text-muted-foreground">Document attached</p>
                 </div>
               </div>
-              <Button size="sm" variant="secondary" className="flex items-center gap-2">
-                Open <ExternalLink className="w-3 h-3" />
+              <Button size="sm" variant="secondary" className="flex items-center gap-2" asChild>
+                <a href={mezmur.pdfUrl} target="_blank" rel="noopener noreferrer">
+                  Open <ExternalLink className="w-3 h-3" />
+                </a>
               </Button>
             </div>
           )}
@@ -117,7 +133,7 @@ export default async function MezmurDetailPage(props: { params: Promise<{ id: st
         <div className="lg:col-span-3 space-y-8">
           <div>
             <div className="inline-flex px-3 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-500 text-xs font-semibold rounded-full mb-4">
-              {mezmur.category.name}
+              {mezmur.category?.name || "Unknown Category"}
             </div>
             <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
               {mezmur.title}
@@ -130,7 +146,7 @@ export default async function MezmurDetailPage(props: { params: Promise<{ id: st
           </div>
 
           <div className="grid grid-cols-2 gap-4 pt-6 border-t">
-            <MetaItem icon={Tag} label="Category" value={mezmur.category.name} />
+            <MetaItem icon={Tag} label="Category" value={mezmur.category?.name || "Unknown"} />
             <MetaItem icon={User} label="Uploaded By" value={mezmur.uploadedById} />
             <MetaItem icon={Calendar} label="Created At" value={createdDate} />
             <MetaItem icon={Clock} label="Last Updated" value={updatedDate} />
@@ -138,9 +154,11 @@ export default async function MezmurDetailPage(props: { params: Promise<{ id: st
 
           <div className="flex items-center gap-4 pt-4">
              {mezmur.pdfUrl && (
-               <Button className="flex items-center gap-2 flex-1 sm:flex-none">
-                 <FileText className="w-4 h-4" />
-                 View Document
+               <Button className="flex items-center gap-2 flex-1 sm:flex-none" asChild>
+                 <a href={mezmur.pdfUrl} target="_blank" rel="noopener noreferrer">
+                   <FileText className="w-4 h-4" />
+                   View Document
+                 </a>
                </Button>
              )}
              <Link href={`/dashboard/mezmur/${mezmur.id}/edit`} className="flex-1 sm:flex-none">

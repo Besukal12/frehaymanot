@@ -6,32 +6,57 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, Upload, FileText, Image as ImageIcon, Music } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-const mockCategories = [
-  { id: 1, name: "New Year" },
-  { id: 2, name: "Fasting" },
-  { id: 3, name: "Easter" },
-  { id: 4, name: "Meskel" },
-];
+import { useFetch } from "@/hooks/use-fetch";
+import { getMezmurCategories, API_URL } from "@/lib/api";
+import { useAuth } from "@clerk/nextjs";
 
 export default function CreateMezmurPage() {
   const router = useRouter();
+  const { getToken } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     categoryId: "",
     description: "",
   });
+  
+  const [thumbnail, setThumbnail] = useState<File | null>(null);
+  const [pdf, setPdf] = useState<File | null>(null);
+
+  const { data: categories } = useFetch(getMezmurCategories);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    setIsSubmitting(false);
-    router.push("/dashboard/mezmur");
+    try {
+      const token = await getToken();
+      const form = new FormData();
+      form.append("title", formData.title);
+      form.append("categoryId", formData.categoryId);
+      if (formData.description) form.append("description", formData.description);
+      if (thumbnail) form.append("thumbnail", thumbnail);
+      if (pdf) form.append("pdf", pdf);
+
+      const response = await fetch(`${API_URL}/api/mezmur/mezmurs`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        body: form,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create mezmur");
+      }
+
+      router.push("/dashboard/mezmur");
+    } catch (error) {
+      console.error(error);
+      alert("Error creating mezmur");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -54,7 +79,6 @@ export default function CreateMezmurPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6 bg-card border rounded-xl p-6 shadow-sm">
-        {/* Basic Info Section */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold border-b pb-2 mb-4">Basic Information</h3>
           
@@ -84,7 +108,7 @@ export default function CreateMezmurPage() {
                 onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
               >
                 <option value="" disabled>Select a category</option>
-                {mockCategories.map((cat) => (
+                {categories?.map((cat) => (
                   <option key={cat.id} value={cat.id}>
                     {cat.name}
                   </option>
@@ -108,42 +132,42 @@ export default function CreateMezmurPage() {
           </div>
         </div>
 
-        {/* Uploads Section */}
         <div className="space-y-4 pt-4">
           <h3 className="text-lg font-semibold border-b pb-2 mb-4">Media & Documents</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center bg-muted/20 hover:bg-muted/40 transition-colors cursor-pointer group">
+            <label className="border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center bg-muted/20 hover:bg-muted/40 transition-colors cursor-pointer group">
               <div className="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                 <ImageIcon className="w-6 h-6" />
               </div>
               <h4 className="font-semibold text-sm mb-1">Thumbnail Image</h4>
               <p className="text-xs text-muted-foreground mb-4">
-                JPEG, PNG or WEBP (Max 2MB)
+                {thumbnail ? thumbnail.name : "JPEG, PNG or WEBP (Max 2MB)"}
               </p>
+              <input type="file" accept="image/*" className="hidden" onChange={(e) => setThumbnail(e.target.files?.[0] || null)} required />
               <Button type="button" variant="outline" size="sm" className="pointer-events-none">
                 <Upload className="w-3 h-3 mr-2" />
                 Select Image
               </Button>
-            </div>
+            </label>
 
-            <div className="border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center bg-muted/20 hover:bg-muted/40 transition-colors cursor-pointer group">
+            <label className="border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center bg-muted/20 hover:bg-muted/40 transition-colors cursor-pointer group">
               <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 text-red-600 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                 <FileText className="w-6 h-6" />
               </div>
               <h4 className="font-semibold text-sm mb-1">PDF Document</h4>
               <p className="text-xs text-muted-foreground mb-4">
-                Upload lyrics or music sheet PDF
+                {pdf ? pdf.name : "Upload lyrics or music sheet PDF"}
               </p>
+              <input type="file" accept="application/pdf" className="hidden" onChange={(e) => setPdf(e.target.files?.[0] || null)} required />
               <Button type="button" variant="outline" size="sm" className="pointer-events-none">
                 <Upload className="w-3 h-3 mr-2" />
                 Select PDF
               </Button>
-            </div>
+            </label>
           </div>
         </div>
 
-        {/* Actions */}
         <div className="flex items-center justify-end gap-3 pt-6 border-t mt-8">
           <Link href="/dashboard/mezmur">
             <Button type="button" variant="outline" disabled={isSubmitting}>

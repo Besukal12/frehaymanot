@@ -3,107 +3,38 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { Plus, Search, Filter, BookOpen, ArrowUpDown } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { CourseCard, Course } from "./_components/CourseCard";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CourseCard } from "./_components/CourseCard";
 import { cn } from "cn";
-
-const MOCK_CATEGORIES = [
-  { id: 1, name: "Theology" },
-  { id: 2, name: "Biblical Studies" },
-  { id: 3, name: "History" },
-  { id: 4, name: "Ethics" },
-];
-
-const MOCK_COURSES: Course[] = [
-  {
-    id: 1,
-    title: "Introduction to Dogmatic Theology",
-    description:
-      "A comprehensive overview of foundational theological concepts in the Orthodox tradition. Covers Christology, Pneumatology, and Trinitarian theology.",
-    grade: 1,
-    category: MOCK_CATEGORIES[0],
-    uploadedById: "user_1",
-    createdAt: new Date("2024-01-15"),
-    pdfUrl: "https://example.com/pdf",
-  },
-  {
-    id: 2,
-    title: "Old Testament Survey",
-    description:
-      "Exploring the historical books, prophets, and wisdom literature with patristic commentary and interpretations.",
-    grade: 1,
-    category: MOCK_CATEGORIES[1],
-    uploadedById: "user_2",
-    createdAt: new Date("2024-02-10"),
-    thumbnailUrl: null,
-  },
-  {
-    id: 3,
-    title: "Church History: The First Seven Councils",
-    description:
-      "Detailed study of the Ecumenical Councils, the heresies they addressed, and the formulation of the Creed.",
-    grade: 2,
-    category: MOCK_CATEGORIES[2],
-    uploadedById: "user_1",
-    createdAt: new Date("2024-03-05"),
-    pdfUrl: "https://example.com/pdf",
-  },
-  {
-    id: 4,
-    title: "Christian Ethics in Modern Society",
-    description:
-      "Applying traditional Orthodox ethical teachings to contemporary moral dilemmas.",
-    grade: 3,
-    category: MOCK_CATEGORIES[3],
-    uploadedById: "user_3",
-    createdAt: new Date("2024-04-20"),
-  },
-  {
-    id: 5,
-    title: "Advanced Pauline Epistles",
-    description:
-      "In-depth exegesis of Romans and Galatians, focusing on the concepts of grace, law, and justification.",
-    grade: 4,
-    category: MOCK_CATEGORIES[1],
-    uploadedById: "user_2",
-    createdAt: new Date("2024-05-12"),
-    pdfUrl: "https://example.com/pdf",
-  },
-];
+import { useFetch } from "@/hooks/use-fetch";
+import { getCourses, getCourseCategories } from "@/lib/api";
+import { CardSkeleton } from "@/components/ui/loading-skeleton";
 
 export default function CoursesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState("newest");
 
+  const { data: courses, isLoading: isLoadingCourses, error: errorCourses } = useFetch(getCourses);
+  const { data: categories } = useFetch(getCourseCategories);
+
   // Filtering and sorting logic
-  const filteredCourses = MOCK_COURSES.filter((course) => {
+  const filteredCourses = (courses || []).filter((course) => {
     const matchesSearch =
       course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       course.description?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory =
-      selectedCategory === null || course.category.id === selectedCategory;
+      selectedCategory === null || course.categoryId === selectedCategory;
     return matchesSearch && matchesCategory;
   }).sort((a, b) => {
     switch (sortBy) {
       case "newest":
-        return (
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       case "oldest":
-        return (
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        );
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       case "title-asc":
         return a.title.localeCompare(b.title);
       case "grade":
@@ -120,7 +51,7 @@ export default function CoursesPage() {
           <h2 className="text-3xl font-bold tracking-tight">Courses</h2>
           <p className="text-muted-foreground mt-1">
             Manage educational materials and course curriculum (
-            {MOCK_COURSES.length} total)
+            {courses?.length || 0} total)
           </p>
         </div>
         <div className="flex gap-2">
@@ -143,7 +74,7 @@ export default function CoursesPage() {
       </div>
 
       {/* Filters and Search */}
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between bg-card p-4 rounded-lg border shadow-sm">
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between bg-card p-4 rounded-lg shadow-sm">
         <div className="relative w-full md:max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -168,7 +99,7 @@ export default function CoursesPage() {
             >
               All
             </Badge>
-            {MOCK_CATEGORIES.map((category) => (
+            {categories?.map((category) => (
               <Badge
                 key={category.id}
                 variant={
@@ -212,7 +143,13 @@ export default function CoursesPage() {
       </div>
 
       {/* Course Grid */}
-      {filteredCourses.length > 0 ? (
+      {errorCourses ? (
+        <div className="text-red-500 p-8 text-center">Error loading courses: {errorCourses}</div>
+      ) : isLoadingCourses ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <CardSkeleton /><CardSkeleton /><CardSkeleton /><CardSkeleton />
+        </div>
+      ) : filteredCourses.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredCourses.map((course) => (
             <CourseCard key={course.id} course={course} />

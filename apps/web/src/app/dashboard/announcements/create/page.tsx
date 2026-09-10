@@ -5,17 +5,46 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
+import { API_URL } from "@/lib/api";
 
 export default function CreateAnnouncementPage() {
+  const router = useRouter();
+  const { getToken } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({ title: "", slug: "", content: "" });
+  const [thumbnail, setThumbnail] = useState<File | null>(null);
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
+    
+    try {
+      const token = await getToken();
+      const form = new FormData();
+      form.append("title", formData.title);
+      form.append("slug", formData.slug);
+      form.append("content", formData.content);
+      if (thumbnail) form.append("thumbnail", thumbnail);
+
+      const response = await fetch(`${API_URL}/api/announcement/create`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        body: form,
+      });
+
+      if (!response.ok) throw new Error("Failed to create announcement");
+
+      router.push("/dashboard/announcements");
+    } catch (error) {
+      console.error(error);
+      alert("Error creating announcement");
+    } finally {
       setLoading(false);
-      alert("Announcement created successfully (mock)");
-    }, 1000);
+    }
   };
 
   return (
@@ -41,36 +70,36 @@ export default function CreateAnnouncementPage() {
           <form onSubmit={onSubmit} className="flex flex-col gap-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="flex flex-col gap-2">
-                <label htmlFor="title" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Title
-                </label>
+                <label htmlFor="title" className="text-sm font-medium leading-none">Title</label>
                 <input 
                   id="title"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" 
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" 
                   placeholder="e.g. Welcome to the New Semester"
                   required
+                  value={formData.title}
+                  onChange={e => setFormData({...formData, title: e.target.value})}
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <label htmlFor="slug" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Slug (URL)
-                </label>
+                <label htmlFor="slug" className="text-sm font-medium leading-none">Slug (URL)</label>
                 <input 
                   id="slug"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                   placeholder="e.g. welcome-new-semester"
                   required
+                  value={formData.slug}
+                  onChange={e => setFormData({...formData, slug: e.target.value})}
                 />
               </div>
               <div className="flex flex-col gap-2 md:col-span-2">
-                <label htmlFor="content" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Content
-                </label>
+                <label htmlFor="content" className="text-sm font-medium leading-none">Content</label>
                 <textarea 
                   id="content"
-                  className="flex min-h-[150px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex min-h-[150px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                   placeholder="The main text of the announcement..."
                   required
+                  value={formData.content}
+                  onChange={e => setFormData({...formData, content: e.target.value})}
                 />
               </div>
             </div>
@@ -79,15 +108,14 @@ export default function CreateAnnouncementPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="flex flex-col gap-2">
-                <label htmlFor="thumbnail" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Thumbnail Image
-                </label>
+                <label htmlFor="thumbnail" className="text-sm font-medium leading-none">Thumbnail Image</label>
                 <div className="flex items-center gap-4">
                   <input 
                     id="thumbnail"
                     type="file"
                     accept="image/*"
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                    onChange={e => setThumbnail(e.target.files?.[0] || null)}
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">Upload a cover image (Optional)</p>
@@ -96,7 +124,7 @@ export default function CreateAnnouncementPage() {
 
             <div className="flex justify-end gap-4 mt-4">
               <Link href="/dashboard/announcements">
-                <Button type="button" variant="outline">Cancel</Button>
+                <Button type="button" variant="outline" disabled={loading}>Cancel</Button>
               </Link>
               <Button type="submit" disabled={loading}>
                 {loading ? "Creating..." : "Post Announcement"}

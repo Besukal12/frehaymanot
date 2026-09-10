@@ -1,46 +1,17 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { format } from "date-fns";
-import { 
-  BookOpen, 
-  GraduationCap, 
-  FileText, 
-  Eye, 
-  Edit, 
-  Trash2,
-  MoreVertical
-} from "lucide-react";
-import { cn } from "cn";
-
+import { BookOpen, GraduationCap, FileText, Eye, Edit, Trash2, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-// Type definition exported here or imported from page.tsx
-export type Course = {
-  id: number;
-  title: string;
-  description?: string | null;
-  grade: number;
-  thumbnailUrl?: string | null;
-  pdfUrl?: string | null;
-  category: { id: number; name: string };
-  uploadedById: string;
-  createdAt: string | Date;
-};
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Course } from "@/lib/api";
 
 export function CourseCard({ course }: { course: Course }) {
   const formattedDate = typeof course.createdAt === 'string' 
     ? new Date(course.createdAt).toLocaleDateString()
-    : course.createdAt.toLocaleDateString();
+    : new Date(course.createdAt).toLocaleDateString(); // Fallback if somehow date
 
   return (
     <Card className="group overflow-hidden flex flex-col transition-all hover:shadow-md border-muted bg-card">
@@ -79,22 +50,22 @@ export function CourseCard({ course }: { course: Course }) {
       <CardContent className="flex flex-col flex-grow p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
           <Badge variant="outline" className="text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/50">
-            {course.category.name}
+            {course.category?.name || "Unknown"}
           </Badge>
           <DropdownMenu>
-            <DropdownMenuTrigger>
+            <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8 -mt-2 -mr-2 text-muted-foreground">
                 <span className="sr-only">Open menu</span>
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuItem>
+              <DropdownMenuItem asChild>
                 <Link href={`/dashboard/course/${course.id}`} className="cursor-pointer flex items-center">
                   <Eye className="mr-2 h-4 w-4" /> View Details
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem asChild>
                 <Link href={`/dashboard/course/edit/${course.id}`} className="cursor-pointer flex items-center">
                   <Edit className="mr-2 h-4 w-4" /> Edit Course
                 </Link>

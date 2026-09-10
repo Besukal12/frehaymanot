@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Music, FileText, Calendar, Eye, Edit, Trash2 } from "lucide-react";
 import { cn } from "cn";
-import { Mezmur } from "../page";
+import { Mezmur } from "@/lib/api";
 
 export function MezmurCard({ mezmur }: { mezmur: Mezmur }) {
   const dateStr =
@@ -36,7 +36,7 @@ export function MezmurCard({ mezmur }: { mezmur: Mezmur }) {
         )}
 
         <div className="absolute bottom-3 left-3 bg-amber-500/90 text-white text-xs font-medium px-2.5 py-1 rounded-full shadow-sm backdrop-blur-sm">
-          {mezmur.category.name}
+          {mezmur.category?.name || "Unknown Category"}
         </div>
       </Link>
 
