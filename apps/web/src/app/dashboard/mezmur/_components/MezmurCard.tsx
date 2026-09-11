@@ -7,10 +7,7 @@ import { cn } from "cn";
 import { Mezmur } from "@/lib/api";
 
 export function MezmurCard({ mezmur }: { mezmur: Mezmur }) {
-  const dateStr =
-    mezmur.createdAt instanceof Date
-      ? mezmur.createdAt.toLocaleDateString()
-      : new Date(mezmur.createdAt).toLocaleDateString();
+  const dateStr = new Date(mezmur.createdAt).toLocaleDateString();
 
   return (
     <div className="group relative flex flex-col bg-card border rounded-xl overflow-hidden hover:shadow-md transition-all duration-300 hover:-translate-y-1">

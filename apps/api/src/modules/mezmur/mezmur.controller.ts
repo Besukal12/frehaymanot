@@ -7,6 +7,8 @@ import {
   uploadToCloudinary,
 } from "../../middleware/upload/uploadToCloudinary.js";
 import cloudinary from "../../config/cloudinary.js";
+import { isAdminRole } from "../../middleware/auth.middleware.js";
+import { parsePositiveInt } from "../../lib/ids.js";
 
 // add mezmur and mezmur category
 export async function addCategory(req: Request, res: Response) {
@@ -31,10 +33,7 @@ export async function addCategory(req: Request, res: Response) {
 
     return res.status(201).json({
       message: "Category created successfully.",
-      category: {
-        name: newCategory.name,
-        description: newCategory.description,
-      },
+      category: newCategory,
     });
   } catch (error) {
     console.error("Add category error:", error);
@@ -145,7 +144,13 @@ export async function addMezmur(req: Request, res: Response) {
 //get mezmur and mezmur category
 export async function getCategory(req: Request, res: Response) {
   try {
-    const categories = await prisma.mezmurCategory.findMany();
+    const categories = await prisma.mezmurCategory.findMany({
+      include: {
+        _count: {
+          select: { Mezmurs: true },
+        },
+      },
+    });
 
     return res.status(200).json({
       message: "Categories retrieved successfully",
@@ -181,11 +186,17 @@ export async function getMezmur(req: Request, res: Response) {
 
 export async function getMezmurById(req: Request, res: Response) {
   try {
-    const { id } = req.params;
+    const mezmurId = parsePositiveInt(req.params.id);
+
+    if (!mezmurId) {
+      return res.status(400).json({
+        message: "Invalid mezmur ID",
+      });
+    }
 
     const mezmur = await prisma.mezmur.findUnique({
       where: {
-        id: Number(id),
+        id: mezmurId,
       },
       include: {
         category: true,
@@ -285,7 +296,7 @@ export async function deleteMezmur(req: Request, res: Response) {
     }
 
     const isOwner = mezmur.uploadedById === userId;
-    const isAdmin = orgRole === "admin";
+    const isAdmin = isAdminRole(orgRole);
 
     if (!isOwner && !isAdmin) {
       return res.status(403).json({
@@ -409,7 +420,7 @@ export async function updateMezmur(req: Request, res: Response) {
     }
 
     const isOwner = mezmur.uploadedById === userId;
-    const isAdmin = orgRole === "admin";
+    const isAdmin = isAdminRole(orgRole);
 
     if (!isOwner && !isAdmin) {
       return res.status(403).json({

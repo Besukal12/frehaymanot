@@ -11,7 +11,7 @@ import { CourseCard } from "./_components/CourseCard";
 import { cn } from "cn";
 import { useFetch } from "@/hooks/use-fetch";
 import { getCourses, getCourseCategories } from "@/lib/api";
-import { CardSkeleton } from "@/components/ui/loading-skeleton";
+import { CardSkeleton, ErrorState } from "@/components/ui/loading-skeleton";
 
 export default function CoursesPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -144,7 +144,9 @@ export default function CoursesPage() {
 
       {/* Course Grid */}
       {errorCourses ? (
-        <div className="text-red-500 p-8 text-center">Error loading courses: {errorCourses}</div>
+        <div className="p-8">
+          <ErrorState message={`Error loading courses: ${errorCourses}`} />
+        </div>
       ) : isLoadingCourses ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <CardSkeleton /><CardSkeleton /><CardSkeleton /><CardSkeleton />

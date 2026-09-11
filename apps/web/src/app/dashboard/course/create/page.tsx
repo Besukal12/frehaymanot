@@ -19,6 +19,7 @@ export default function CreateCoursePage() {
   const router = useRouter();
   const { getToken } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { data: categories } = useFetch(getCourseCategories);
 
   const [formData, setFormData] = useState({
@@ -34,6 +35,7 @@ export default function CreateCoursePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setErrorMessage(null);
     
     try {
       const token = await getToken();
@@ -53,12 +55,14 @@ export default function CreateCoursePage() {
         body: form,
       });
 
-      if (!response.ok) throw new Error("Failed to create course");
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.message || "Failed to create course");
+      }
 
       router.push("/dashboard/course");
     } catch (error) {
-      console.error(error);
-      alert("Error creating course");
+      setErrorMessage(error instanceof Error ? error.message : "Error creating course");
     } finally {
       setIsSubmitting(false);
     }
@@ -188,6 +192,7 @@ export default function CreateCoursePage() {
 
         {/* Action Buttons */}
         <div className="flex items-center justify-end gap-4 pt-4 border-t">
+          {errorMessage && <p className="mr-auto text-sm text-destructive">{errorMessage}</p>}
           <Link href="/dashboard/course">
             <Button variant="outline" type="button" disabled={isSubmitting}>Cancel</Button>
           </Link>

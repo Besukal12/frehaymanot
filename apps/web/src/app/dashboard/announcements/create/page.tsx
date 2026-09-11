@@ -13,12 +13,14 @@ export default function CreateAnnouncementPage() {
   const router = useRouter();
   const { getToken } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [formData, setFormData] = useState({ title: "", slug: "", content: "" });
   const [thumbnail, setThumbnail] = useState<File | null>(null);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMessage(null);
     
     try {
       const token = await getToken();
@@ -36,12 +38,14 @@ export default function CreateAnnouncementPage() {
         body: form,
       });
 
-      if (!response.ok) throw new Error("Failed to create announcement");
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.message || "Failed to create announcement");
+      }
 
       router.push("/dashboard/announcements");
     } catch (error) {
-      console.error(error);
-      alert("Error creating announcement");
+      setErrorMessage(error instanceof Error ? error.message : "Error creating announcement");
     } finally {
       setLoading(false);
     }
@@ -123,6 +127,7 @@ export default function CreateAnnouncementPage() {
             </div>
 
             <div className="flex justify-end gap-4 mt-4">
+              {errorMessage && <p className="mr-auto text-sm text-destructive">{errorMessage}</p>}
               <Link href="/dashboard/announcements">
                 <Button type="button" variant="outline" disabled={loading}>Cancel</Button>
               </Link>

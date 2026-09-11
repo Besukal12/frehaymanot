@@ -1,31 +1,105 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { Plus, Search, MoreVertical, Edit, Trash2, FolderOpen, ArrowLeft } from "lucide-react";
+import { Plus, Search, Edit, Trash2, FolderOpen, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useFetch } from "@/hooks/use-fetch";
-import { getCourseCategories } from "@/lib/api";
-import { TableSkeleton } from "@/components/ui/loading-skeleton";
+import {
+  createCourseCategory,
+  deleteCourseCategory,
+  getCourseCategories,
+  updateCourseCategory,
+  type CourseCategory,
+} from "@/lib/api";
+import { TableSkeleton, ErrorState, EmptyState } from "@/components/ui/loading-skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useAuth } from "@clerk/nextjs";
 
 export default function CourseCategoriesPage() {
+  const { getToken } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
-  const { data: categories, isLoading, error } = useFetch(getCourseCategories);
+  const { data: categories, isLoading, error, refetch } = useFetch(getCourseCategories);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState<CourseCategory | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<CourseCategory | null>(null);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
-  const filteredCategories = (categories || []).filter(cat => 
-    cat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    cat.description.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredCategories = (categories || []).filter(
+    (cat) =>
+      cat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      cat.description.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+
+  const openCreate = () => {
+    setEditing(null);
+    setName("");
+    setDescription("");
+    setFormError(null);
+    setFormOpen(true);
+  };
+
+  const openEdit = (cat: CourseCategory) => {
+    setEditing(cat);
+    setName(cat.name);
+    setDescription(cat.description);
+    setFormError(null);
+    setFormOpen(true);
+  };
+
+  const saveCategory = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSaving(true);
+    setFormError(null);
+    try {
+      const token = await getToken();
+      if (editing) {
+        await updateCourseCategory(editing.id, { name, description }, token);
+      } else {
+        await createCourseCategory({ name, description }, token);
+      }
+      setFormOpen(false);
+      refetch();
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : "Could not save category");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    setSaving(true);
+    try {
+      const token = await getToken();
+      await deleteCourseCategory(pendingDelete.id, token);
+      setPendingDelete(null);
+      refetch();
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : "Could not delete category");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="flex-1 space-y-6 p-8 pt-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <div className="flex items-center gap-2 mb-1">
+          <div className="mb-1 flex items-center gap-2">
             <Link href="/dashboard/course">
               <Button variant="ghost" size="icon" className="h-8 w-8 -ml-2 text-muted-foreground">
                 <ArrowLeft className="h-4 w-4" />
@@ -33,40 +107,44 @@ export default function CourseCategoriesPage() {
             </Link>
             <h2 className="text-3xl font-bold tracking-tight">Course Categories</h2>
           </div>
-          <p className="text-muted-foreground ml-8">
+          <p className="ml-8 text-muted-foreground">
             Manage categories for organizing courses ({categories?.length || 0} total)
           </p>
         </div>
-        <Button className="gap-2 bg-blue-600 hover:bg-blue-700 text-white">
-          <Plus className="w-4 h-4" />
+        <Button className="gap-2 bg-blue-600 text-white hover:bg-blue-700" onClick={openCreate}>
+          <Plus className="h-4 w-4" />
           Add Category
         </Button>
       </div>
 
-      <div className="flex items-center justify-between bg-card p-4 rounded-t-lg border border-b-0 shadow-sm mt-6">
+      <div className="mt-6 flex items-center justify-between rounded-t-lg border border-b-0 bg-card p-4 shadow-sm">
         <div className="relative w-full md:max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search categories..."
-            className="pl-9 bg-background"
+            className="bg-background pl-9"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
       </div>
 
-      <div className="border rounded-b-lg overflow-hidden bg-card shadow-sm">
+      <div className="overflow-hidden rounded-b-lg border bg-card shadow-sm">
         {isLoading ? (
-          <div className="p-4"><TableSkeleton /></div>
+          <div className="p-4">
+            <TableSkeleton />
+          </div>
         ) : error ? (
-          <div className="p-4 text-red-500 text-center">Error loading categories: {error}</div>
+          <div className="p-4">
+            <ErrorState message={error} onRetry={refetch} />
+          </div>
         ) : (
           <Table>
             <TableHeader className="bg-muted/50">
               <TableRow>
                 <TableHead className="w-[300px]">Name</TableHead>
                 <TableHead>Description</TableHead>
-                <TableHead className="text-center w-[120px]">Courses</TableHead>
+                <TableHead className="w-[120px] text-center">Courses</TableHead>
                 <TableHead className="w-[150px]">Created At</TableHead>
                 <TableHead className="w-[80px] text-right">Actions</TableHead>
               </TableRow>
@@ -74,54 +152,41 @@ export default function CourseCategoriesPage() {
             <TableBody>
               {filteredCategories.length > 0 ? (
                 filteredCategories.map((category) => (
-                  <TableRow key={category.id} className="group">
+                  <TableRow key={category.id}>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-3">
-                        <div className="bg-blue-100 dark:bg-blue-900/50 p-2 rounded-md">
+                        <div className="rounded-md bg-blue-100 p-2 dark:bg-blue-900/50">
                           <FolderOpen className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                         </div>
                         {category.name}
                       </div>
                     </TableCell>
-                    <TableCell className="text-muted-foreground line-clamp-1 max-w-[300px] mt-2.5">
+                    <TableCell className="max-w-[300px] text-muted-foreground">
                       {category.description}
                     </TableCell>
                     <TableCell className="text-center">
-                      <Badge variant="secondary" className="bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 font-mono">
-                        {category._count?.Mezmurs || 0} {/* using Mezmurs because of the copy paste bug in backend schema */}
-                      </Badge>
+                      <Badge variant="secondary">{category._count?.courses || 0}</Badge>
                     </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
+                    <TableCell className="text-sm text-muted-foreground">
                       {new Date(category.createdAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100">
-                            <MoreVertical className="h-4 w-4" />
-                            <span className="sr-only">Open menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem className="cursor-pointer">
-                            <Edit className="mr-2 h-4 w-4" /> Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer">
-                            <Trash2 className="mr-2 h-4 w-4" /> Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <Button variant="ghost" size="icon" onClick={() => openEdit(category)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => setPendingDelete(category)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-32 text-center">
-                    <div className="flex flex-col items-center justify-center text-muted-foreground">
-                      <FolderOpen className="h-8 w-8 mb-2 opacity-50" />
-                      <p>No categories found matching "{searchQuery}"</p>
-                    </div>
+                  <TableCell colSpan={5}>
+                    <EmptyState
+                      title="No categories found"
+                      description="Create a category to organize courses."
+                    />
                   </TableCell>
                 </TableRow>
               )}
@@ -129,6 +194,52 @@ export default function CourseCategoriesPage() {
           </Table>
         )}
       </div>
+
+      <Dialog open={formOpen} onOpenChange={setFormOpen}>
+        <DialogContent>
+          <form onSubmit={saveCategory} className="space-y-4">
+            <DialogHeader>
+              <DialogTitle>{editing ? "Edit category" : "New category"}</DialogTitle>
+              <DialogDescription>Name and description are required.</DialogDescription>
+            </DialogHeader>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name" required />
+            <Input
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Description"
+              required
+            />
+            {formError && <p className="text-sm text-destructive">{formError}</p>}
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setFormOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={saving}>
+                {saving ? "Saving..." : "Save"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!pendingDelete} onOpenChange={(open) => !open && setPendingDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete category?</DialogTitle>
+            <DialogDescription>
+              {pendingDelete?.name} will be removed if it has no attached courses.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPendingDelete(null)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete} disabled={saving}>
+              {saving ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

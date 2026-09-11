@@ -10,6 +10,7 @@ import {
   CreateAnnouncementSchema,
   UpdateAnnouncementSchema,
 } from "./announcement.schema.js";
+import { isAdminRole } from "../../middleware/auth.middleware.js";
 
 function generateSlug(title: string) {
   return title.trim().toLowerCase().replace(/\s+/g, "-");
@@ -34,9 +35,9 @@ export async function addAnnouncement(req: Request, res: Response) {
       });
     }
 
-    const { title, content, postedAt } = result.data;
+    const { title, content, postedAt, slug: providedSlug } = result.data;
 
-    const slug = generateSlug(title);
+    const slug = providedSlug ?? generateSlug(title);
 
     const files = req.files as
       | { thumbnail?: Express.Multer.File[] }
@@ -167,7 +168,7 @@ export async function updateAnnouncement(req: Request, res: Response) {
       });
     }
 
-    if (announcement.uploadedById !== userId && orgRole !== "org:admin") {
+    if (announcement.uploadedById !== userId && !isAdminRole(orgRole)) {
       return res.status(403).json({
         message: "You are not allowed to update this announcement",
       });
@@ -281,7 +282,7 @@ export async function deleteAnnouncement(req: Request, res: Response) {
       });
     }
 
-    if (announcement.uploadedById !== userId && orgRole !== "org:admin") {
+    if (announcement.uploadedById !== userId && !isAdminRole(orgRole)) {
       return res.status(403).json({
         message: "You are not allowed to delete this announcement",
       });

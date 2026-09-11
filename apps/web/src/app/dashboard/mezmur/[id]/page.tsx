@@ -5,13 +5,15 @@ import Image from "next/image";
 import { ArrowLeft, Edit, Trash2, Calendar, User, Tag, Clock, FileText, Music, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useFetch } from "@/hooks/use-fetch";
-import { getMezmurById, API_URL } from "@/lib/api";
+import { getMezmurById, deleteMezmur } from "@/lib/api";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter, useParams } from "next/navigation";
-import { Skeleton } from "@/components/ui/loading-skeleton";
+import { DetailSkeleton, ErrorState } from "@/components/ui/loading-skeleton";
 import { useState } from "react";
 
-function MetaItem({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+import type { LucideIcon } from "lucide-react";
+
+function MetaItem({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
   return (
     <div className="flex flex-col p-3 bg-muted/30 rounded-lg border">
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
@@ -40,14 +42,7 @@ export default function MezmurDetailPage() {
     setIsDeleting(true);
     try {
       const token = await getToken();
-      const response = await fetch(`${API_URL}/api/mezmur/mezmurs/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      
-      if (!response.ok) throw new Error("Failed to delete");
+      await deleteMezmur(id, token);
       router.push("/dashboard/mezmur");
     } catch (err) {
       console.error(err);
@@ -57,11 +52,19 @@ export default function MezmurDetailPage() {
   };
 
   if (isLoading) {
-    return <div className="p-8 space-y-4 max-w-5xl mx-auto"><Skeleton className="h-10 w-48" /><Skeleton className="h-[400px] w-full" /></div>;
+    return (
+      <div className="mx-auto w-full max-w-5xl space-y-4 p-8">
+        <DetailSkeleton />
+      </div>
+    );
   }
 
   if (error || !mezmur) {
-    return <div className="p-8 text-red-500">Error loading mezmur: {error}</div>;
+    return (
+      <div className="p-8">
+        <ErrorState message={error || "Mezmur not found"} />
+      </div>
+    );
   }
 
   const createdDate = new Date(mezmur.createdAt).toLocaleDateString();

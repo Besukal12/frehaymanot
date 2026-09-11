@@ -8,7 +8,7 @@ import { MezmurFilters } from "./_components/MezmurFilters";
 import { MezmurCard } from "./_components/MezmurCard";
 import { useFetch } from "@/hooks/use-fetch";
 import { getMezmurs, getMezmurCategories } from "@/lib/api";
-import { CardSkeleton } from "@/components/ui/loading-skeleton";
+import { CardSkeleton, ErrorState } from "@/components/ui/loading-skeleton";
 
 export default function MezmursPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -52,7 +52,11 @@ export default function MezmursPage() {
   }, [searchQuery, selectedCategory, sortBy, mezmurs]);
 
   if (errorMezmurs) {
-    return <div className="p-8 text-red-500">Error loading mezmurs: {errorMezmurs}</div>;
+    return (
+      <div className="p-8">
+        <ErrorState message={`Error loading mezmurs: ${errorMezmurs}`} />
+      </div>
+    );
   }
 
   return (

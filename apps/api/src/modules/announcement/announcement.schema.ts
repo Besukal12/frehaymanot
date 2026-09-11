@@ -10,7 +10,8 @@ export const CreateAnnouncementSchema = z.object({
     .regex(
       /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
       "Slug must contain only lowercase letters, numbers, and hyphens",
-    ),
+    )
+    .optional(),
   content: z.string().trim().min(1),
   postedAt: z.coerce.date().optional(),
 });

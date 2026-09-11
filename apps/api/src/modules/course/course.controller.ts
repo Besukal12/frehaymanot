@@ -7,6 +7,8 @@ import {
 } from "../../middleware/upload/uploadToCloudinary.js";
 import cloudinary from "../../config/cloudinary.js";
 import { CourseCategorySchema, CourseSchema } from "./course.schema.js";
+import { isAdminRole } from "../../middleware/auth.middleware.js";
+import { parsePositiveInt } from "../../lib/ids.js";
 
 // add course and course category
 export async function addCategory(req: Request, res: Response) {
@@ -29,12 +31,9 @@ export async function addCategory(req: Request, res: Response) {
       },
     });
 
-    return res.status(200).json({
+    return res.status(201).json({
       message: "Category created successfully.",
-      category: {
-        name: newCategory.name,
-        description: newCategory.description,
-      },
+      category: newCategory,
     });
   } catch (error) {
     console.error("Add category error:", error);
@@ -146,7 +145,13 @@ export async function addCourse(req: Request, res: Response) {
 //get course and course category
 export async function getCategory(req: Request, res: Response) {
   try {
-    const categories = await prisma.courseCategory.findMany();
+    const categories = await prisma.courseCategory.findMany({
+      include: {
+        _count: {
+          select: { courses: true },
+        },
+      },
+    });
 
     return res.status(200).json({
       message: "Categories retrieved successfully",
@@ -182,11 +187,17 @@ export async function getCourse(req: Request, res: Response) {
 
 export async function getCourseById(req: Request, res: Response) {
   try {
-    const { id } = req.params;
+    const courseId = parsePositiveInt(req.params.id);
+
+    if (!courseId) {
+      return res.status(400).json({
+        message: "Invalid course ID",
+      });
+    }
 
     const course = await prisma.course.findUnique({
       where: {
-        id: Number(id),
+        id: courseId,
       },
       include: {
         category: true,
@@ -195,7 +206,7 @@ export async function getCourseById(req: Request, res: Response) {
 
     if (!course) {
       return res.status(404).json({
-        message: "Mezmur not found",
+        message: "Course not found",
       });
     }
 
@@ -223,7 +234,7 @@ export async function deleteCategory(req: Request, res: Response) {
       });
     }
 
-    const category = await prisma.mezmurCategory.findUnique({
+    const category = await prisma.courseCategory.findUnique({
       where: {
         id: categoryId,
       },
@@ -286,7 +297,7 @@ export async function deleteCourse(req: Request, res: Response) {
     }
 
     const isOwner = course.uploadedById === userId;
-    const isAdmin = orgRole === "admin";
+    const isAdmin = isAdminRole(orgRole);
 
     if (!isOwner && !isAdmin) {
       return res.status(403).json({
@@ -410,7 +421,7 @@ export async function updateCourse(req: Request, res: Response) {
     }
 
     const isOwner = course.uploadedById === userId;
-    const isAdmin = orgRole === "admin";
+    const isAdmin = isAdminRole(orgRole);
 
     if (!isOwner && !isAdmin) {
       return res.status(403).json({
@@ -496,7 +507,7 @@ export async function updateCourse(req: Request, res: Response) {
       oldPdfStorageId = course.pdfStorageId;
     }
 
-    const updatedMezmur = await prisma.course.update({
+    const updatedCourse = await prisma.course.update({
       where: {
         id: courseId,
       },
@@ -518,7 +529,7 @@ export async function updateCourse(req: Request, res: Response) {
 
     return res.status(200).json({
       message: "Course updated successfully",
-      mezmur: updatedMezmur,
+      course: updatedCourse,
     });
   } catch (error) {
     console.error("Update Course error:", error);

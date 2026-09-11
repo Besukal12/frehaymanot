@@ -9,11 +9,13 @@ import {
 } from "../../modules/announcement/announcement.controller.js";
 
 import upload from "../../middleware/upload/uploadToCloudinary.js";
+import { checkAuth } from "../../middleware/auth.middleware.js";
 
 const router = Router();
 
 router.post(
   "/create",
+  checkAuth,
   upload.fields([
     {
       name: "thumbnail",
@@ -29,6 +31,7 @@ router.get("/get/:id", getAnnouncementById);
 
 router.patch(
   "/update/:id",
+  checkAuth,
   upload.fields([
     {
       name: "thumbnail",
@@ -38,6 +41,6 @@ router.patch(
   updateAnnouncement,
 );
 
-router.delete("/delete/:id", deleteAnnouncement);
+router.delete("/delete/:id", checkAuth, deleteAnnouncement);
 
 export default router;

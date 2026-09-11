@@ -25,9 +25,12 @@ export default function CreateMezmurPage() {
 
   const { data: categories } = useFetch(getMezmurCategories);
 
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setErrorMessage(null);
     
     try {
       const token = await getToken();
@@ -38,7 +41,7 @@ export default function CreateMezmurPage() {
       if (thumbnail) form.append("thumbnail", thumbnail);
       if (pdf) form.append("pdf", pdf);
 
-      const response = await fetch(`${API_URL}/api/mezmur/mezmurs`, {
+      const response = await fetch(`${API_URL}/api/mezmur/add`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`
@@ -47,13 +50,13 @@ export default function CreateMezmurPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create mezmur");
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.message || "Failed to create mezmur");
       }
 
       router.push("/dashboard/mezmur");
     } catch (error) {
-      console.error(error);
-      alert("Error creating mezmur");
+      setErrorMessage(error instanceof Error ? error.message : "Error creating mezmur");
     } finally {
       setIsSubmitting(false);
     }
@@ -169,6 +172,7 @@ export default function CreateMezmurPage() {
         </div>
 
         <div className="flex items-center justify-end gap-3 pt-6 border-t mt-8">
+          {errorMessage && <p className="mr-auto text-sm text-destructive">{errorMessage}</p>}
           <Link href="/dashboard/mezmur">
             <Button type="button" variant="outline" disabled={isSubmitting}>
               Cancel

@@ -10,10 +10,10 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useFetch } from "@/hooks/use-fetch";
-import { getCourseById, API_URL } from "@/lib/api";
+import { getCourseById, deleteCourse } from "@/lib/api";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter, useParams } from "next/navigation";
-import { Skeleton } from "@/components/ui/loading-skeleton";
+import { DetailSkeleton, ErrorState } from "@/components/ui/loading-skeleton";
 
 export default function CourseDetailPage() {
   const params = useParams();
@@ -30,14 +30,7 @@ export default function CourseDetailPage() {
     setIsDeleting(true);
     try {
       const token = await getToken();
-      const response = await fetch(`${API_URL}/api/course/delete/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      
-      if (!response.ok) throw new Error("Failed to delete");
+      await deleteCourse(id, token);
       router.push("/dashboard/course");
     } catch (err) {
       console.error(err);
@@ -47,11 +40,19 @@ export default function CourseDetailPage() {
   };
 
   if (isLoading) {
-    return <div className="p-8 space-y-4 max-w-5xl mx-auto"><Skeleton className="h-10 w-48" /><Skeleton className="h-[400px] w-full" /></div>;
+    return (
+      <div className="mx-auto w-full max-w-5xl space-y-4 p-8">
+        <DetailSkeleton />
+      </div>
+    );
   }
 
   if (error || !course) {
-    return <div className="p-8 text-red-500">Error loading course: {error}</div>;
+    return (
+      <div className="p-8">
+        <ErrorState message={error || "Course not found"} />
+      </div>
+    );
   }
 
   return (
