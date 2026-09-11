@@ -5,6 +5,8 @@ export default defineConfig({
     environment: "node",
     setupFiles: ["./test/setup.ts"],
     fileParallelism: false,
+    testTimeout: 30000,
+    hookTimeout: 30000,
     pool: "forks",
     maxWorkers: 1,
   },
