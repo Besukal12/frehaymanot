@@ -120,8 +120,8 @@ export default function CourseDetailPage() {
                 <CardDescription>Download the official curriculum PDF</CardDescription>
               </CardHeader>
               <CardContent>
-                <Button className="w-full gap-2 bg-blue-600 hover:bg-blue-700 text-white" asChild>
-                  <a href={course.pdfUrl} target="_blank" rel="noopener noreferrer">
+                <Button className="w-full gap-2 bg-blue-600 hover:bg-blue-700 text-white">
+                  <a href={course.pdfUrl} target="_blank" rel="noopener noreferrer" className="w-full flex justify-center items-center gap-2">
                     <Download className="h-4 w-4" />
                     Download PDF Document
                   </a>

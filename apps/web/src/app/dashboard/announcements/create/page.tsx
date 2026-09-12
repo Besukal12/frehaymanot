@@ -122,7 +122,7 @@ export default function CreateAnnouncementPage() {
                     onChange={e => setThumbnail(e.target.files?.[0] || null)}
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">Upload a cover image (Optional)</p>
+                <p className="text-xs text-muted-foreground">Upload a cover image</p>
               </div>
             </div>
 

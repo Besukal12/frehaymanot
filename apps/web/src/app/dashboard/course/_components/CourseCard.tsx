@@ -53,19 +53,19 @@ export function CourseCard({ course }: { course: Course }) {
             {course.category?.name || "Unknown"}
           </Badge>
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+            <DropdownMenuTrigger>
               <Button variant="ghost" size="icon" className="h-8 w-8 -mt-2 -mr-2 text-muted-foreground">
                 <span className="sr-only">Open menu</span>
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuItem asChild>
+              <DropdownMenuItem>
                 <Link href={`/dashboard/course/${course.id}`} className="cursor-pointer flex items-center">
                   <Eye className="mr-2 h-4 w-4" /> View Details
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
+              <DropdownMenuItem>
                 <Link href={`/dashboard/course/edit/${course.id}`} className="cursor-pointer flex items-center">
                   <Edit className="mr-2 h-4 w-4" /> Edit Course
                 </Link>
