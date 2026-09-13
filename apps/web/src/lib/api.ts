@@ -157,6 +157,15 @@ export const deleteMezmur = async (id: number | string, token?: string | null) =
   await fetchApi(`/api/mezmur/delete/${id}`, { method: "DELETE", token });
 };
 
+export const updateMezmur = async (id: number | string, form: FormData, token?: string | null) => {
+  const data = await fetchApi<{ mezmur: Mezmur }>(`/api/mezmur/update/${id}`, {
+    method: "PATCH",
+    body: form,
+    token,
+  });
+  return data.mezmur;
+};
+
 export const getCourseCategories = async (): Promise<CourseCategory[]> => {
   const data = await fetchApi<{ categories: CourseCategory[] }>("/api/course/categories");
   return data.categories;
@@ -203,6 +212,15 @@ export const getCourseById = async (id: number | string): Promise<Course> => {
 
 export const deleteCourse = async (id: number | string, token?: string | null) => {
   await fetchApi(`/api/course/delete/${id}`, { method: "DELETE", token });
+};
+
+export const updateCourse = async (id: number | string, form: FormData, token?: string | null) => {
+  const data = await fetchApi<{ course: Course }>(`/api/course/update/${id}`, {
+    method: "PATCH",
+    body: form,
+    token,
+  });
+  return data.course;
 };
 
 export const getAnnouncements = async (): Promise<Announcement[]> => {
