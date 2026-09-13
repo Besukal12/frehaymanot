@@ -108,9 +108,12 @@ export async function addMezmur(req: Request, res: Response) {
     const uploadedThumbnail = await uploadToCloudinary(
       thumbnail.buffer,
       thumbnailType,
+      { filename: thumbnail.originalname },
     );
 
-    const uploadedPdf = await uploadToCloudinary(pdf.buffer, pdfType);
+    const uploadedPdf = await uploadToCloudinary(pdf.buffer, pdfType, {
+      filename: pdf.originalname,
+    });
 
     const newMezmur = await prisma.mezmur.create({
       data: {
@@ -482,6 +485,7 @@ export async function updateMezmur(req: Request, res: Response) {
       const uploadedThumbnail = await uploadToCloudinary(
         thumbnail.buffer,
         thumbnailType,
+        { filename: thumbnail.originalname },
       );
 
       updateData.thumbnailUrl = uploadedThumbnail.secure_url;
@@ -498,7 +502,9 @@ export async function updateMezmur(req: Request, res: Response) {
         });
       }
 
-      const uploadedPdf = await uploadToCloudinary(pdf.buffer, pdfType);
+      const uploadedPdf = await uploadToCloudinary(pdf.buffer, pdfType, {
+        filename: pdf.originalname,
+      });
 
       updateData.pdfUrl = uploadedPdf.secure_url;
       updateData.pdfStorageId = uploadedPdf.public_id;

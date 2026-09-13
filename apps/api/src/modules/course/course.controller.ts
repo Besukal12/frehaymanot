@@ -108,9 +108,12 @@ export async function addCourse(req: Request, res: Response) {
     const uploadedThumbnail = await uploadToCloudinary(
       thumbnail.buffer,
       thumbnailType,
+      { filename: thumbnail.originalname },
     );
 
-    const uploadedPdf = await uploadToCloudinary(pdf.buffer, pdfType);
+    const uploadedPdf = await uploadToCloudinary(pdf.buffer, pdfType, {
+      filename: pdf.originalname,
+    });
 
     const newCourse = await prisma.course.create({
       data: {
@@ -484,6 +487,7 @@ export async function updateCourse(req: Request, res: Response) {
       const uploadedThumbnail = await uploadToCloudinary(
         thumbnail.buffer,
         thumbnailType,
+        { filename: thumbnail.originalname },
       );
 
       updateData.thumbnailUrl = uploadedThumbnail.secure_url;
@@ -500,7 +504,9 @@ export async function updateCourse(req: Request, res: Response) {
         });
       }
 
-      const uploadedPdf = await uploadToCloudinary(pdf.buffer, pdfType);
+      const uploadedPdf = await uploadToCloudinary(pdf.buffer, pdfType, {
+        filename: pdf.originalname,
+      });
 
       updateData.pdfUrl = uploadedPdf.secure_url;
       updateData.pdfStorageId = uploadedPdf.public_id;
