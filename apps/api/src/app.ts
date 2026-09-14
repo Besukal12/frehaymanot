@@ -7,7 +7,7 @@ import feedbackRoutes from "./routes/feedback/route.js";
 
 const app = express();
 
-const frontendOrigin = process.env.FRONTEND_URL || "http://localhost:3000";
+const frontendOrigin = process.env.FRONTEND_URL || "https://frehaymanot-frontend.vercel.app";
 
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", frontendOrigin);
