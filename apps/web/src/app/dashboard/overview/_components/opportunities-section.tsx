@@ -110,7 +110,7 @@ export function OpportunitiesSection() {
                 }}
               />
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+                <DropdownMenuTrigger>
                   <Button variant="outline" size="sm">
                     <ListFilter data-icon="inline-start" />
                     Stage
@@ -134,7 +134,7 @@ export function OpportunitiesSection() {
                 </DropdownMenuContent>
               </DropdownMenu>
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+                <DropdownMenuTrigger>
                   <Button variant="outline" size="sm">
                     <ListFilter data-icon="inline-start" />
                     Health
