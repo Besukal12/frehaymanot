@@ -31,7 +31,10 @@ function getHealthScore(health: OpportunityRow["health"]) {
   }
 }
 
-export const opportunitiesColumns: ColumnDef<DataTableFeatures, OpportunityRow>[] = [
+export const opportunitiesColumns: ColumnDef<
+  DataTableFeatures,
+  OpportunityRow
+>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -39,20 +42,27 @@ export const opportunitiesColumns: ColumnDef<DataTableFeatures, OpportunityRow>[
         source={table.atoms.rowSelection}
         selector={() =>
           table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected() && "indeterminate")
+          (table.getIsSomePageRowsSelected() &&
+            !table.getIsAllPageRowsSelected() &&
+            "indeterminate")
         }
       >
         {(checked) => (
           <Checkbox
-            checked={checked}
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            checked={checked === true}
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
             aria-label="Select all opportunities"
           />
         )}
       </Subscribe>
     ),
     cell: ({ row }) => (
-      <Subscribe source={row.table.atoms.rowSelection} selector={(selection) => Boolean(selection?.[row.id])}>
+      <Subscribe
+        source={row.table.atoms.rowSelection}
+        selector={(selection) => Boolean(selection?.[row.id])}
+      >
         {(checked) => (
           <Checkbox
             checked={checked}
@@ -67,13 +77,17 @@ export const opportunitiesColumns: ColumnDef<DataTableFeatures, OpportunityRow>[
   {
     accessorKey: "id",
     header: "ID",
-    cell: ({ row }) => <div className="text-sm tracking-tight">{row.original.id}</div>,
+    cell: ({ row }) => (
+      <div className="text-sm tracking-tight">{row.original.id}</div>
+    ),
     enableHiding: false,
   },
   {
     accessorKey: "account",
     header: "Account",
-    cell: ({ row }) => <div className="font-medium text-sm">{row.original.account}</div>,
+    cell: ({ row }) => (
+      <div className="font-medium text-sm">{row.original.account}</div>
+    ),
   },
   {
     accessorKey: "stage",
@@ -101,7 +115,9 @@ export const opportunitiesColumns: ColumnDef<DataTableFeatures, OpportunityRow>[
             key={`${row.original.id}-${slot.id}`}
             className={cn(
               "h-5 w-1 rounded-full",
-              slot.threshold <= getHealthScore(row.original.health) ? "bg-green-500/85" : "bg-green-500/15",
+              slot.threshold <= getHealthScore(row.original.health)
+                ? "bg-green-500/85"
+                : "bg-green-500/15",
             )}
           />
         ))}
@@ -112,7 +128,11 @@ export const opportunitiesColumns: ColumnDef<DataTableFeatures, OpportunityRow>[
   {
     accessorKey: "value",
     header: "Value",
-    cell: ({ row }) => <div className="font-medium text-sm tabular-nums">{row.original.value}</div>,
+    cell: ({ row }) => (
+      <div className="font-medium text-sm tabular-nums">
+        {row.original.value}
+      </div>
+    ),
   },
   {
     id: "actions",

@@ -132,9 +132,11 @@ export default function CreateCoursePage() {
                     <Label htmlFor="category">Category</Label>
                     <Select
                       required
-                      onValueChange={(value: string) =>
-                        setFormData({ ...formData, categoryId: value })
-                      }
+                      onValueChange={(value) => {
+                        if (typeof value === "string") {
+                          setFormData({ ...formData, categoryId: value });
+                        }
+                      }}
                     >
                       <SelectTrigger id="category">
                         <SelectValue placeholder="Select a category" />
@@ -153,9 +155,11 @@ export default function CreateCoursePage() {
                     <Label htmlFor="grade">Target Grade</Label>
                     <Select
                       required
-                      onValueChange={(value: string) =>
-                        setFormData({ ...formData, grade: value })
-                      }
+                      onValueChange={(value) => {
+                        if (typeof value === "string") {
+                          setFormData({ ...formData, grade: value });
+                        }
+                      }}
                     >
                       <SelectTrigger id="grade">
                         <SelectValue placeholder="Select a grade" />
