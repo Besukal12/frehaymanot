@@ -8,8 +8,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useFetch } from "@/hooks/use-fetch";
 import { getCourseCategories, API_URL } from "@/lib/api";
@@ -28,7 +40,7 @@ export default function CreateCoursePage() {
     grade: "",
     description: "",
   });
-  
+
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [pdf, setPdf] = useState<File | null>(null);
 
@@ -36,21 +48,22 @@ export default function CreateCoursePage() {
     e.preventDefault();
     setIsSubmitting(true);
     setErrorMessage(null);
-    
+
     try {
       const token = await getToken();
       const form = new FormData();
       form.append("title", formData.title);
       form.append("categoryId", formData.categoryId);
       form.append("grade", formData.grade);
-      if (formData.description) form.append("description", formData.description);
+      if (formData.description)
+        form.append("description", formData.description);
       if (thumbnail) form.append("thumbnail", thumbnail);
       if (pdf) form.append("pdf", pdf);
 
       const response = await fetch(`${API_URL}/api/course/create`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
         body: form,
       });
@@ -62,7 +75,9 @@ export default function CreateCoursePage() {
 
       router.push("/dashboard/course");
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Error creating course");
+      setErrorMessage(
+        error instanceof Error ? error.message : "Error creating course",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -78,7 +93,9 @@ export default function CreateCoursePage() {
           </Button>
         </Link>
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Create New Course</h2>
+          <h2 className="text-2xl font-bold tracking-tight">
+            Create New Course
+          </h2>
           <p className="text-sm text-muted-foreground mt-1">
             Add a new educational resource to the platform
           </p>
@@ -92,30 +109,41 @@ export default function CreateCoursePage() {
             <Card>
               <CardHeader>
                 <CardTitle>Basic Information</CardTitle>
-                <CardDescription>Enter the primary details for the course.</CardDescription>
+                <CardDescription>
+                  Enter the primary details for the course.
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="title">Course Title</Label>
-                  <Input 
-                    id="title" 
-                    placeholder="e.g., Introduction to Dogmatic Theology" 
-                    required 
+                  <Input
+                    id="title"
+                    placeholder="e.g., Introduction to Dogmatic Theology"
+                    required
                     value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, title: e.target.value })
+                    }
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="category">Category</Label>
-                    <Select required onValueChange={(value) => setFormData({ ...formData, categoryId: value })}>
+                    <Select
+                      required
+                      onValueChange={(value: string) =>
+                        setFormData({ ...formData, categoryId: value })
+                      }
+                    >
                       <SelectTrigger id="category">
                         <SelectValue placeholder="Select a category" />
                       </SelectTrigger>
                       <SelectContent>
-                        {categories?.map(cat => (
-                          <SelectItem key={cat.id} value={cat.id.toString()}>{cat.name}</SelectItem>
+                        {categories?.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id.toString()}>
+                            {cat.name}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -123,14 +151,23 @@ export default function CreateCoursePage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="grade">Target Grade</Label>
-                    <Select required onValueChange={(value) => setFormData({ ...formData, grade: value })}>
+                    <Select
+                      required
+                      onValueChange={(value: string) =>
+                        setFormData({ ...formData, grade: value })
+                      }
+                    >
                       <SelectTrigger id="grade">
                         <SelectValue placeholder="Select a grade" />
                       </SelectTrigger>
                       <SelectContent>
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(grade => (
-                          <SelectItem key={grade} value={grade.toString()}>Grade {grade}</SelectItem>
-                        ))}
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(
+                          (grade) => (
+                            <SelectItem key={grade} value={grade.toString()}>
+                              Grade {grade}
+                            </SelectItem>
+                          ),
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -138,12 +175,14 @@ export default function CreateCoursePage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="description">Description</Label>
-                  <Textarea 
-                    id="description" 
-                    placeholder="Provide a detailed overview of the course content and objectives..." 
+                  <Textarea
+                    id="description"
+                    placeholder="Provide a detailed overview of the course content and objectives..."
                     className="min-h-[150px] resize-y"
                     value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
                   />
                 </div>
               </CardContent>
@@ -165,9 +204,21 @@ export default function CreateCoursePage() {
                     <div className="bg-blue-100 dark:bg-blue-900/40 p-3 rounded-full mb-3 group-hover:scale-110 transition-transform">
                       <ImageIcon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                     </div>
-                    <p className="text-sm font-medium mb-1">{thumbnail ? thumbnail.name : "Click to upload image"}</p>
-                    <p className="text-xs text-muted-foreground">SVG, PNG, JPG or GIF (max. 2MB)</p>
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => setThumbnail(e.target.files?.[0] || null)} required />
+                    <p className="text-sm font-medium mb-1">
+                      {thumbnail ? thumbnail.name : "Click to upload image"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      SVG, PNG, JPG or GIF (max. 2MB)
+                    </p>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) =>
+                        setThumbnail(e.target.files?.[0] || null)
+                      }
+                      required
+                    />
                   </label>
                 </div>
 
@@ -180,9 +231,19 @@ export default function CreateCoursePage() {
                     <div className="bg-blue-100 dark:bg-blue-900/60 p-3 rounded-full mb-3 group-hover:scale-110 transition-transform">
                       <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                     </div>
-                    <p className="text-sm font-medium mb-1 text-blue-900 dark:text-blue-300">{pdf ? pdf.name : "Upload PDF Material"}</p>
-                    <p className="text-xs text-muted-foreground">PDF document (max. 10MB)</p>
-                    <input type="file" accept="application/pdf" className="hidden" onChange={(e) => setPdf(e.target.files?.[0] || null)} required />
+                    <p className="text-sm font-medium mb-1 text-blue-900 dark:text-blue-300">
+                      {pdf ? pdf.name : "Upload PDF Material"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      PDF document (max. 10MB)
+                    </p>
+                    <input
+                      type="file"
+                      accept="application/pdf"
+                      className="hidden"
+                      onChange={(e) => setPdf(e.target.files?.[0] || null)}
+                      required
+                    />
                   </label>
                 </div>
               </CardContent>
@@ -192,11 +253,19 @@ export default function CreateCoursePage() {
 
         {/* Action Buttons */}
         <div className="flex items-center justify-end gap-4 pt-4 border-t">
-          {errorMessage && <p className="mr-auto text-sm text-destructive">{errorMessage}</p>}
+          {errorMessage && (
+            <p className="mr-auto text-sm text-destructive">{errorMessage}</p>
+          )}
           <Link href="/dashboard/course">
-            <Button variant="outline" type="button" disabled={isSubmitting}>Cancel</Button>
+            <Button variant="outline" type="button" disabled={isSubmitting}>
+              Cancel
+            </Button>
           </Link>
-          <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white min-w-[120px]" disabled={isSubmitting}>
+          <Button
+            type="submit"
+            className="bg-blue-600 hover:bg-blue-700 text-white min-w-[120px]"
+            disabled={isSubmitting}
+          >
             {isSubmitting ? "Creating..." : "Create Course"}
           </Button>
         </div>
